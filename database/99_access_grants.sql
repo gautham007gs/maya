@@ -1,0 +1,57 @@
+-- =============================================================================
+-- FILE:    99_access_grants.sql
+-- PROJECT: Kruthika AI Chat (kruthika.fun)
+-- PURPOSE: MySQL user permission grants — run ONLY if you get "Access Denied"
+-- VERSION: v1.0
+-- CREATED: 2026-06-01
+-- UPDATED: 2026-07-26
+--
+-- WHEN TO RUN:
+--   Run this file ONLY if connecting from Replit (or any remote host) gives:
+--     "Access denied for user 'xxx'@'xx.xx.xx.xx'"
+--   Even after whitelisting the IP in Hostinger → Remote MySQL.
+--
+-- THIS FILE IS NOT IDEMPOTENT — read carefully before running.
+-- Replace placeholder values with your real credentials before executing.
+--
+-- HOW TO RUN (phpMyAdmin):
+--   1. hPanel → Databases → phpMyAdmin
+--   2. Click the "SQL" tab (NOT your database — the top-level SQL tab)
+--   3. Replace YOUR_DB_NAME, YOUR_DB_USER, YOUR_DB_PASSWORD below
+--   4. Paste ONE section (Step A or Step B) and click "Go"
+-- =============================================================================
+
+-- ============================================================
+-- STEP A — MySQL 5.7 (most shared Hostinger plans)
+-- Check version with: SELECT VERSION();
+-- If result starts with 5.7, use this section.
+-- ============================================================
+-- GRANT ALL PRIVILEGES ON `YOUR_DB_NAME`.* TO 'YOUR_DB_USER'@'%' IDENTIFIED BY 'YOUR_DB_PASSWORD';
+-- FLUSH PRIVILEGES;
+
+-- ============================================================
+-- STEP B — MySQL 8.0+ (newer Hostinger plans and VPS)
+-- If VERSION() starts with 8, use this section instead.
+-- ============================================================
+-- CREATE USER IF NOT EXISTS 'YOUR_DB_USER'@'%' IDENTIFIED BY 'YOUR_DB_PASSWORD';
+-- GRANT ALL PRIVILEGES ON `YOUR_DB_NAME`.* TO 'YOUR_DB_USER'@'%';
+-- FLUSH PRIVILEGES;
+
+-- ============================================================
+-- STEP C — Check which version you have
+-- ============================================================
+-- SELECT VERSION();
+
+-- ============================================================
+-- STEP D — Verify the grant worked
+-- ============================================================
+-- SHOW GRANTS FOR 'YOUR_DB_USER'@'%';
+
+-- =============================================================================
+-- WHY '%' (any host)?
+-- Replit assigns a different public IP on every container restart.
+-- Using '%' means any remote IP can connect with these credentials.
+-- The password is the only security barrier — use a strong one.
+-- If your security policy requires IP whitelisting, update this regularly
+-- from hPanel → Databases → Remote MySQL → Add IP Address.
+-- =============================================================================
