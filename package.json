@@ -8,9 +8,10 @@
   "scripts": {
     "dev": "next dev --webpack -p 5000 -H 0.0.0.0",
     "dev:turbopack": "next dev --turbopack -p 5000 -H 0.0.0.0",
-    "build": "next build",
-    "build:prod": "next build",
-    "build:analyze": "next build",
+    "build": "next build --webpack",
+    "build:prod": "next build --webpack",
+    "build:turbopack": "next build --turbo",
+    "build:analyze": "next build --webpack",
     "images:webp": "node scripts/generate-webp-images.mjs",
     "start": "next start -p ${PORT:-5000} -H 0.0.0.0",
     "start:prod": "next start -p ${PORT:-5000} -H 0.0.0.0",
@@ -24,7 +25,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
-    "@next/bundle-analyzer": "^16.3.3",
+    "@next/bundle-analyzer": "^16.3.8",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
@@ -45,20 +46,20 @@
     "date-fns": "^4.4.0",
     "lucide-react": "^1.37.0",
     "mysql2": "^3.24.2",
-    "next": "^16.3.3",
+    "next": "^16.3.8",
     "openai": "6.21.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-onesignal": "^3.5.6",
     "recharts": "^3.10.1",
-    "sanitize-html": "2.16.0",
+    "sanitize-html": "^2.18.0",
     "server-only": "^0.0.1",
     "sharp": "^0.35.4",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^16.3.3",
+    "@next/eslint-plugin-next": "^16.3.8",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
@@ -73,6 +74,10 @@
     "tailwindcss": "^3.4.19",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "brace-expansion": ">=1.1.21",
+    "braces": ">=3.0.3"
   },
   "browserslist": [
     "Chrome >= 110",
