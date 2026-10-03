@@ -18,39 +18,12 @@ import {
 // Pure content-processing helpers live in a shared module so the admin editor's
 // client-side preview can reuse them without importing THIS server component.
 import {
-  extractToc,
   injectHeadingIds,
   processContentImages,
   splitByBlocks,
   numAdBreaks,
   PROSE,
-  type TocItem,
 } from '@/components/blog/blog-content-utils';
-
-// ── Table of Contents (Item #34) ─────────────────────────────────────────
-function TableOfContents({ items }: { items: TocItem[] }) {
-  if (items.length < 3) return null; // Only show ToC for articles with 3+ headings
-  return (
-    <nav
-      aria-label="Table of contents"
-      className="my-8 p-5 bg-muted/30 border border-border rounded-xl not-prose"
-    >
-      <p className="text-sm font-bold text-foreground mb-3 uppercase tracking-wide">Table of Contents</p>
-      <ol className="space-y-1.5 list-none m-0 p-0">
-        {items.map((item, i) => (
-          <li key={i} className={item.level === 3 ? 'pl-4' : ''}>
-            <a
-              href={`#${item.id}`}
-              className="text-sm text-primary hover:underline leading-snug"
-            >
-              {item.text}
-            </a>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  );
-}
 
 // PROSE typography + content-processing helpers now live in
 // '@/components/blog/blog-content-utils' (shared verbatim with the admin
@@ -205,7 +178,6 @@ export default function DbBlogPostContent({ post, authorRecord: authorRecordProp
   const safePost     = { ...post, faq_items: faqItems };
   // Inject heading IDs → process images (CLS prevention) → split for ads
   const content      = processContentImages(injectHeadingIds(rawContent));
-  const tocItems     = extractToc(rawContent);
   // Keep article monetisation useful without turning long posts into an ad
   // wall. A short post gets one contextual break; medium and long posts get
   // at most two, plus the dedicated banner/native/square units below.
@@ -242,7 +214,7 @@ export default function DbBlogPostContent({ post, authorRecord: authorRecordProp
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
 
       <main id="main-content" className="min-h-screen bg-background">
-        <div className="w-full max-w-[680px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="w-full max-w-[700px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
           {/* ── Breadcrumb nav ──────────────────────────────────────────────── */}
           <nav aria-label="Breadcrumb" className="text-xs mb-8 flex items-center flex-wrap gap-1.5 text-muted-foreground">
@@ -298,19 +270,19 @@ export default function DbBlogPostContent({ post, authorRecord: authorRecordProp
                 )}
               </div>
 
-              {/* 2. Title — Medium: serif, 700 weight, tight negative tracking ─── */}
+              {/* 2. Title — Modern sans-serif: bold, clean tracking, clear hierarchy */}
               <h1
                 itemProp="headline"
-                className="font-serif text-[32px] sm:text-[40px] lg:text-[44px] font-bold leading-[1.15] tracking-[-0.02em] text-[#242424] mb-4"
+                className="font-sans text-[26px] sm:text-[34px] lg:text-[38px] font-extrabold leading-[1.22] tracking-[-0.025em] text-slate-900 mb-4"
               >
                 {post.title}
               </h1>
 
-              {/* 3. Excerpt / dek — Medium: same serif family, regular weight, gray ── */}
+              {/* 3. Excerpt / dek — Clean modern sans-serif, relaxed leading */}
               {post.excerpt && (
                 <p
                   itemProp="description"
-                  className="article-excerpt font-serif text-[20px] sm:text-[22px] font-normal leading-[1.4] text-[#6B6B6B] mb-6"
+                  className="article-excerpt font-sans text-[16px] sm:text-[18px] font-normal leading-[1.6] text-slate-600 mb-6"
                 >
                   {post.excerpt}
                 </p>
@@ -367,6 +339,11 @@ export default function DbBlogPostContent({ post, authorRecord: authorRecordProp
                     src={post.featured_image}
                     alt={post.featured_image_alt || post.title}
                   />
+                  {post.featured_image_caption && (
+                    <figcaption className="text-center text-xs text-muted-foreground mt-2 px-4 italic">
+                      {post.featured_image_caption}
+                    </figcaption>
+                  )}
                 </figure>
               )}
 
@@ -382,9 +359,6 @@ export default function DbBlogPostContent({ post, authorRecord: authorRecordProp
                 </div>
               )}
             </header>
-
-            {/* ── Table of Contents (Item #34) ──────────────────────────── */}
-            {!isHowTo && <TableOfContents items={tocItems} />}
 
             {/* ── Top ad (just inside article, below fold) ───────────────── */}
             <div className="mb-6">
@@ -434,11 +408,11 @@ export default function DbBlogPostContent({ post, authorRecord: authorRecordProp
                 <div className="space-y-3">
                   {faqItems.map((faq, i) => (
                     <details key={i} className="group border border-border rounded-xl overflow-hidden">
-                      <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer font-semibold text-[15px] sm:text-base leading-snug text-foreground select-none hover:bg-muted/40 transition-colors list-none">
+                      <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer font-medium text-[15px] sm:text-base leading-snug text-foreground select-none hover:bg-muted/40 transition-colors list-none">
                         <span>{faq.question}</span>
                         <span className="text-muted-foreground text-xl group-open:rotate-45 transition-transform shrink-0">+</span>
                       </summary>
-                      <div className="px-5 pb-4 pt-1 text-[15px] sm:text-base font-medium text-foreground/90 leading-relaxed border-t border-border/50"
+                      <div className="px-5 pb-4 pt-1 text-[15px] sm:text-base font-normal text-foreground/80 leading-relaxed border-t border-border/50 [&_strong]:font-semibold [&_b]:font-semibold [&_p]:mb-2 [&_p:last-child]:mb-0"
                         dangerouslySetInnerHTML={{ __html: faq.answer }} />
                     </details>
                   ))}

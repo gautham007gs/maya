@@ -444,7 +444,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({ message, aiAvatarUrl
   }
 
   let aiAvatarUrlToUse = aiAvatarUrl;
-  if (!aiAvatarUrlToUse || typeof aiAvatarUrlToUse !== 'string' || aiAvatarUrlToUse.trim() === '' || (!aiAvatarUrlToUse.startsWith('http') && !aiAvatarUrlToUse.startsWith('data:'))) {
+  if (!aiAvatarUrlToUse || typeof aiAvatarUrlToUse !== 'string' || aiAvatarUrlToUse.trim() === '' || (!aiAvatarUrlToUse.startsWith('http') && !aiAvatarUrlToUse.startsWith('data:') && !aiAvatarUrlToUse.startsWith('/'))) {
     aiAvatarUrlToUse = defaultAIProfile.avatarUrl;
   }
 

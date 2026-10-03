@@ -16,14 +16,14 @@ export type IABPlatform = 'ios' | 'android' | 'other';
 export function isInstagramBrowser(): boolean {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
-  return /Instagram/i.test(ua);
+  return /Instagram|Threads|IGWeb/i.test(ua);
 }
 
-/** True if the current browser is any in-app browser (Instagram, Facebook, TikTok, Twitter) */
+/** True if the current browser is any in-app browser (Instagram, Facebook, Threads, TikTok, Twitter) */
 export function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
-  return /Instagram|FBAN|FBAV|FBIOS|TwitterAndroid|TikTok|BytedanceWebview/i.test(ua);
+  return /Instagram|Threads|IGWeb|FBAN|FBAV|FB_IAB|FB4A|FBIOS|TwitterAndroid|TikTok|BytedanceWebview/i.test(ua);
 }
 
 /** Detect iOS vs Android within IAB */
@@ -33,6 +33,27 @@ export function getIABPlatform(): IABPlatform {
   if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
   if (/Android/i.test(ua)) return 'android';
   return 'other';
+}
+
+/**
+ * Builds an Android intent:// URL that forces the system to open the URL in Chrome or default browser
+ */
+export function getAndroidIntentUrl(targetUrl?: string): string {
+  if (typeof window === 'undefined') return '';
+  const currentUrl = targetUrl || window.location.href;
+  const noScheme = currentUrl.replace(/^https?:\/\//i, '');
+  // Using action=android.intent.action.VIEW with package=com.android.chrome and fallback URL
+  return `intent://${noScheme}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end;`;
+}
+
+/**
+ * Builds a generic Android intent without specific package so default system browser opens
+ */
+export function getGenericAndroidIntentUrl(targetUrl?: string): string {
+  if (typeof window === 'undefined') return '';
+  const currentUrl = targetUrl || window.location.href;
+  const noScheme = currentUrl.replace(/^https?:\/\//i, '');
+  return `intent://${noScheme}#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end;`;
 }
 
 /**

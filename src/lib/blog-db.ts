@@ -17,6 +17,7 @@ export interface DbBlogPost {
   status: 'draft' | 'review' | 'scheduled' | 'published' | 'archived' | 'trash';
   featured_image: string | null;
   featured_image_alt: string | null;
+  featured_image_caption?: string | null;
   schema_type: SchemaType;
   tags: string[] | null;
   seo_title: string | null;
@@ -160,6 +161,9 @@ function parseJsonField(val: any): any {
 function parsePost(row: any): DbBlogPost {
   return {
     ...row,
+    featured_image: row.featured_image || null,
+    featured_image_alt: row.featured_image_alt || null,
+    featured_image_caption: row.featured_image_caption || null,
     noindex: Boolean(row.noindex),
     schema_type: (row.schema_type as SchemaType) || 'BlogPosting',
     tags: parseJsonField(row.tags) ?? [],
@@ -260,6 +264,15 @@ export async function ensureSeoSchemaMigrated(): Promise<void> {
       }
     }
 
+    const [captionCols]: any = await client.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'blog_posts' AND COLUMN_NAME = 'featured_image_caption'`
+    );
+    if (!Array.isArray(captionCols) || captionCols.length === 0) {
+      try {
+        await client.query(`ALTER TABLE blog_posts ADD COLUMN featured_image_caption TEXT NULL DEFAULT NULL`);
+      } catch { /* ignore if column exists */ }
+    }
+
     const [mediaCols]: any = await client.query(
       `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cms_media_assets' AND COLUMN_NAME = 'folder'`
     );
@@ -338,7 +351,9 @@ export async function ensureSeoSchemaMigrated(): Promise<void> {
 const ADMIN_COLS = `
   bp.id, bp.slug, bp.title, bp.excerpt, bp.content, bp.author, bp.author_title,
   bp.category_id, bc.name AS category_name, bc.slug AS category_slug,
-  bp.status, bp.featured_image, bp.featured_image_alt, bp.schema_type, bp.tags,
+  bp.status, bp.featured_image, bp.featured_image_alt,
+  COALESCE(bp.featured_image_caption, NULL) AS featured_image_caption,
+  bp.schema_type, bp.tags,
   bp.seo_title, bp.seo_description, bp.seo_keywords,
   bp.long_tail_keywords, bp.og_image,
   COALESCE(bp.og_title, NULL) AS og_title,
@@ -750,7 +765,12 @@ export async function getPostsAdminPage(options: BlogAdminListOptions = {}): Pro
   const search = options.search?.trim() || '';
   const where: string[] = [];
   const values: any[] = [];
-  if (status !== 'all') { where.push('bp.status = ?'); values.push(status); }
+  if (status !== 'all') {
+    where.push('bp.status = ?');
+    values.push(status);
+  } else {
+    where.push("bp.status != 'trash'");
+  }
   if (options.categoryId) { where.push('bp.category_id = ?'); values.push(options.categoryId); }
   if (search) {
     where.push('(bp.title LIKE ? OR bp.excerpt LIKE ? OR bp.author LIKE ? OR bp.slug LIKE ?)');
@@ -797,19 +817,20 @@ export async function savePostRedirect(fromSlug: string, toSlug: string): Promis
 
 
 export async function createPost(data: Omit<DbBlogPost, 'id' | 'created_at' | 'updated_at' | 'category_name' | 'category_slug'>): Promise<number | null> {
+  await ensureSeoSchemaMigrated();
   const client = await getMysqlClient();
   const [result]: any = await client.query(
     `INSERT INTO blog_posts
        (slug, title, excerpt, content, author, author_title, category_id, status,
-         featured_image, featured_image_alt, schema_type, tags, seo_title, seo_description, seo_keywords,
+         featured_image, featured_image_alt, featured_image_caption, schema_type, tags, seo_title, seo_description, seo_keywords,
         long_tail_keywords, og_image, canonical_url, noindex, faq_items,
         word_count, reading_time_minutes, date_published, date_modified,
         scheduled_at, scheduled_timezone)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       data.slug, data.title, data.excerpt, data.content,
       data.author, data.author_title, data.category_id, data.status,
-       data.featured_image, data.featured_image_alt, data.schema_type || 'BlogPosting',
+      data.featured_image, data.featured_image_alt, data.featured_image_caption ?? null, data.schema_type || 'BlogPosting',
       JSON.stringify(data.tags ?? []),
       data.seo_title, data.seo_description, data.seo_keywords,
       JSON.stringify(data.long_tail_keywords ?? []),
@@ -838,6 +859,7 @@ export async function updatePost(id: number, data: Partial<Omit<DbBlogPost, 'id'
   if (data.status       !== undefined) add('status',       data.status);
   if (data.featured_image !== undefined) add('featured_image', data.featured_image);
   if (data.featured_image_alt !== undefined) add('featured_image_alt', data.featured_image_alt);
+  if (data.featured_image_caption !== undefined) add('featured_image_caption', data.featured_image_caption);
   if (data.schema_type  !== undefined) add('schema_type',  data.schema_type);
   if (data.tags         !== undefined) add('tags',         JSON.stringify(data.tags ?? []));
   if (data.seo_title    !== undefined) add('seo_title',    data.seo_title);
@@ -878,6 +900,7 @@ export async function createPostRevision(
     slug: post.slug, title: post.title, excerpt: post.excerpt, content: post.content,
     author: post.author, author_title: post.author_title, category_id: post.category_id,
     status: post.status, featured_image: post.featured_image, featured_image_alt: post.featured_image_alt,
+    featured_image_caption: post.featured_image_caption ?? null,
     schema_type: post.schema_type, tags: post.tags, seo_title: post.seo_title,
     seo_description: post.seo_description, seo_keywords: post.seo_keywords,
     long_tail_keywords: post.long_tail_keywords, og_image: post.og_image,
@@ -1275,6 +1298,12 @@ export async function permanentlyDeletePosts(ids: number[]): Promise<void> {
   if (!ids.length) return;
   const client = await getMysqlClient();
   await client.query(`DELETE FROM blog_posts WHERE id IN (${ids.map(() => '?').join(',')}) AND status = 'trash'`, ids);
+}
+
+export async function emptyTrashPosts(): Promise<number> {
+  const client = await getMysqlClient();
+  const [result]: any = await client.query(`DELETE FROM blog_posts WHERE status = 'trash'`);
+  return Number(result?.affectedRows || 0);
 }
 
 export async function duplicatePost(id: number): Promise<number | null> {

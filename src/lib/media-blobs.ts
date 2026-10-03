@@ -13,8 +13,7 @@ import { getMysqlClient } from './mysql-client';
  * an asset exists until it is explicitly deleted.
  *
  * The on-disk copy is now just a warm cache: writes are best-effort and reads
- * fall through to this table. Table is self-healing (created on first use) so
- * no manual migration step is required.
+ * fall through to this table.
  */
 
 export interface MediaBlob {
@@ -23,37 +22,75 @@ export interface MediaBlob {
   content: Buffer;
 }
 
+function normalizePath(p: string): string {
+  return (p || '').replace(/\\/g, '/').replace(/^\/+/, '').trim();
+}
+
+let mediaBlobsTableEnsured = false;
+let mediaBlobsTablePromise: Promise<void> | null = null;
+
 export async function ensureMediaBlobsTable(): Promise<void> {
-  const client = await getMysqlClient();
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS media_blobs (
-      storage_path VARCHAR(500) PRIMARY KEY,
-      mime_type    VARCHAR(150) NOT NULL,
-      bytes        INT NOT NULL,
-      content      LONGBLOB NOT NULL,
-      updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+  if (mediaBlobsTableEnsured) return;
+  if (mediaBlobsTablePromise) return mediaBlobsTablePromise;
+
+  mediaBlobsTablePromise = (async () => {
+    try {
+      const client = await getMysqlClient();
+      // VARCHAR(191) with utf8mb4 takes 191 * 4 = 764 bytes, safely below InnoDB's 767B limit
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS media_blobs (
+          storage_path VARCHAR(191) PRIMARY KEY,
+          mime_type    VARCHAR(150) NOT NULL,
+          bytes        INT NOT NULL,
+          content      LONGBLOB NOT NULL,
+          updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+      mediaBlobsTableEnsured = true;
+    } catch (err: any) {
+      console.warn('[MediaBlobs] ensure table primary attempt failed, trying fallback:', err?.message || err);
+      try {
+        const client = await getMysqlClient();
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS media_blobs (
+            storage_path VARCHAR(255) CHARACTER SET ascii COLLATE ascii_general_ci PRIMARY KEY,
+            mime_type    VARCHAR(150) NOT NULL,
+            bytes        INT NOT NULL,
+            content      LONGBLOB NOT NULL,
+            updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+        mediaBlobsTableEnsured = true;
+      } catch (fallbackErr: any) {
+        console.error('[MediaBlobs] fallback ensure table failed:', fallbackErr?.message || fallbackErr);
+      }
+    } finally {
+      mediaBlobsTablePromise = null;
+    }
+  })();
+
+  return mediaBlobsTablePromise;
 }
 
 /** Store (or replace) the binary content for a storage path. */
 export async function putMediaBlob(storagePath: string, mimeType: string, content: Buffer): Promise<void> {
+  const cleanPath = normalizePath(storagePath);
   await ensureMediaBlobsTable();
   const client = await getMysqlClient();
   await client.query(
     `INSERT INTO media_blobs (storage_path, mime_type, bytes, content)
      VALUES (?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE mime_type = VALUES(mime_type), bytes = VALUES(bytes), content = VALUES(content)`,
-    [storagePath, mimeType, content.length, content],
+    [cleanPath, mimeType, content.length, content],
   );
 }
 
 export async function getMediaBlob(storagePath: string): Promise<MediaBlob | null> {
   try {
+    const cleanPath = normalizePath(storagePath);
     await ensureMediaBlobsTable();
     const client = await getMysqlClient();
     const [rows]: any = await client.query(
-      `SELECT mime_type, bytes, content FROM media_blobs WHERE storage_path = ? LIMIT 1`,
-      [storagePath],
+      `SELECT mime_type, bytes, content FROM media_blobs WHERE storage_path IN (?, ?, ?) LIMIT 1`,
+      [cleanPath, storagePath, `/${cleanPath}`],
     );
     if (!Array.isArray(rows) || !rows[0]) return null;
     return {
@@ -70,21 +107,37 @@ export async function getMediaBlob(storagePath: string): Promise<MediaBlob | nul
 
 export async function deleteMediaBlob(storagePath: string): Promise<void> {
   try {
+    const cleanPath = normalizePath(storagePath);
     await ensureMediaBlobsTable();
     const client = await getMysqlClient();
-    await client.query(`DELETE FROM media_blobs WHERE storage_path IN (?, ?)`, [
+    await client.query(`DELETE FROM media_blobs WHERE storage_path IN (?, ?, ?)`, [
+      cleanPath,
       storagePath,
-      storagePath.replace(/\\/g, '/').replace(/^\/+/, ''),
+      `/${cleanPath}`,
     ]);
   } catch (err) {
     console.warn('[MediaBlobs] delete failed (non-fatal):', err);
   }
 }
 
+export async function bulkDeleteMediaBlobs(storagePaths: string[]): Promise<void> {
+  if (!storagePaths || !storagePaths.length) return;
+  try {
+    await ensureMediaBlobsTable();
+    const client = await getMysqlClient();
+    const candidates = Array.from(new Set(storagePaths.flatMap(p => {
+      const clean = normalizePath(p);
+      return [clean, p, `/${clean}`];
+    }))).filter(Boolean);
+    if (!candidates.length) return;
+    const placeholders = candidates.map(() => '?').join(',');
+    await client.query(`DELETE FROM media_blobs WHERE storage_path IN (${placeholders})`, candidates);
+  } catch (err) {
+    console.warn('[MediaBlobs] bulk delete failed (non-fatal):', err);
+  }
+}
+
 // ── Audio / video magic-byte sniffing ────────────────────────────────────────
-// Uploads were previously trusted by declared MIME type + extension alone.
-// Sniffing actual bytes closes that gap without rejecting valid files whose
-// browsers send unusual MIME types.
 
 export function sniffAvMime(bytes: Uint8Array): string | null {
   if (bytes.length < 12) return null;

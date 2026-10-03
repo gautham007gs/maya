@@ -106,62 +106,59 @@ export function numAdBreaks(wordCount: number): number {
   return 3;
 }
 
-// ── Prose classes — matches Medium.com's article typography exactly:
-// serif body copy, 1.58 line-height, -0.003em tracking, #292929 ink.
+// ── Prose classes — clean editorial typography tuned for readability.
+// ── Prose classes — clean, modern editorial typography:
+// Designed specifically for high readability on screens (Inter / system sans-serif).
+// Balanced 16px mobile / 17.5px desktop body copy with golden-ratio line-height (1.75),
+// crisp semi-bold headings, gentle slate contrast, and comfortable element margins.
 export const PROSE = [
-  'prose max-w-none font-serif',
-  // Headings — serif, bold, tight negative tracking like Medium's in-article H2/H3
-  'prose-headings:font-serif prose-headings:font-bold prose-headings:text-[#242424] prose-headings:tracking-[-0.015em]',
-  'prose-h2:text-[28px] sm:prose-h2:text-[30px] prose-h2:mt-12 prose-h2:mb-4 prose-h2:leading-[1.25] prose-h2:border-0 prose-h2:pb-0',
-  'prose-h3:text-[22px] sm:prose-h3:text-[24px] prose-h3:mt-9 prose-h3:mb-3 prose-h3:leading-[1.3]',
-  'prose-h4:text-[19px] sm:prose-h4:text-[20px] prose-h4:mt-7 prose-h4:mb-2 prose-h4:leading-[1.35]',
-  // Body text — bumped slightly from Medium's 20px baseline per site preference,
-  // plus a touch more weight/contrast so paragraphs read a little heavier.
-  'prose-p:font-serif prose-p:text-[20px] sm:prose-p:text-[21px] prose-p:leading-[1.6] prose-p:tracking-[-0.003em] prose-p:[font-weight:450]',
-  'prose-p:mb-6 prose-p:mt-0 prose-p:text-[#1a1a1a]',
-  // Links — Medium underlines inline links rather than color-only
-  'prose-a:text-[#242424] prose-a:font-normal prose-a:underline prose-a:decoration-[#242424]/40 prose-a:underline-offset-2 hover:prose-a:decoration-[#242424]',
-  // Lists — same serif measure as paragraphs
-  'prose-ul:my-6 prose-ul:space-y-2 prose-ul:pl-6 prose-ul:font-serif',
-  'prose-ol:my-6 prose-ol:space-y-2 prose-ol:pl-6 prose-ol:font-serif',
-  'prose-li:text-[19px] sm:prose-li:text-[20px] prose-li:leading-[1.58] prose-li:tracking-[-0.003em] prose-li:text-[#292929]',
-  'marker:text-[#242424]',
+  'prose max-w-none font-sans',
+  // Headings — clean, modern, scannable sans-serif with subtle negative tracking
+  'prose-headings:font-sans prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-[-0.02em]',
+  'prose-h2:text-[22px] sm:prose-h2:text-[26px] prose-h2:mt-10 sm:prose-h2:mt-12 prose-h2:mb-3.5 prose-h2:leading-[1.3] prose-h2:border-0 prose-h2:pb-0',
+  'prose-h3:text-[18px] sm:prose-h3:text-[21px] prose-h3:font-semibold prose-h3:mt-8 sm:prose-h3:mt-9 prose-h3:mb-2.5 prose-h3:leading-[1.35] prose-h3:tracking-[-0.015em]',
+  'prose-h4:text-[16px] sm:prose-h4:text-[18px] prose-h4:font-semibold prose-h4:text-slate-800 prose-h4:mt-6 prose-h4:mb-2 prose-h4:leading-[1.4]',
+  // Body text — highly readable slate-800 copy, perfectly scaled for phones & laptops
+  'prose-p:font-sans prose-p:text-[16px] sm:prose-p:text-[17.5px] prose-p:leading-[1.75] prose-p:tracking-[-0.005em] prose-p:font-normal',
+  'prose-p:mb-5 prose-p:mt-0 prose-p:text-slate-800',
+  // Links — modern primary accent with subtle underline offset
+  'prose-a:text-primary prose-a:font-medium prose-a:underline prose-a:decoration-primary/30 prose-a:underline-offset-2 hover:prose-a:decoration-primary transition-colors',
+  // Lists — scannable, cleanly separated with comfortable line-height
+  'prose-ul:my-5 prose-ul:space-y-2 prose-ul:pl-5 prose-ul:font-sans',
+  'prose-ol:my-5 prose-ol:space-y-2 prose-ol:pl-5 prose-ol:font-sans',
+  'prose-li:text-[15.5px] sm:prose-li:text-[17px] prose-li:leading-[1.7] prose-li:tracking-[-0.005em] prose-li:text-slate-700',
+  'marker:text-primary/70',
   // Emphasis
-  'prose-strong:text-[#242424] prose-strong:font-bold',
-  'prose-em:text-[#292929] prose-em:italic',
-  // Blockquote — Medium sets these in italic serif with a heavy left rule, no fill
-  'prose-blockquote:font-serif prose-blockquote:italic prose-blockquote:border-l-[3px] prose-blockquote:border-[#242424]',
-  'prose-blockquote:bg-transparent prose-blockquote:rounded-none',
-  'prose-blockquote:pl-5 prose-blockquote:pr-0 prose-blockquote:py-1 prose-blockquote:my-8',
-  'prose-blockquote:text-[#242424] prose-blockquote:text-[20px] sm:prose-blockquote:text-[22px] prose-blockquote:leading-[1.45]',
-  // Horizontal rule — Medium uses three centered dots for section breaks; a
-  // plain hairline is the closest achievable with a semantic <hr>.
-  'prose-hr:border-[#E5E5E5] prose-hr:my-12',
-  // Table (Medium articles rarely use these, but keep them legible)
-  'prose-table:w-full prose-table:text-[15px] prose-table:font-sans',
-  'prose-thead:border-b prose-thead:border-[#E5E5E5]',
-  'prose-th:px-3 prose-th:py-2.5 prose-th:text-left prose-th:font-semibold prose-th:text-[#242424]',
-  'prose-td:px-3 prose-td:py-2.5 prose-td:border-b prose-td:border-[#F2F2F2] prose-td:text-[#292929]',
-  // Code — sans-serif monospace, Medium's convention for inline/code blocks
-  'prose-code:font-mono prose-code:bg-[#F2F2F2] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[15px] prose-code:before:content-none prose-code:after:content-none',
-  'prose-pre:bg-[#F2F2F2] prose-pre:rounded-none prose-pre:p-4 prose-pre:font-mono prose-pre:text-[15px]',
-  // Highlight / strikethrough — from the blog editor's highlighter & strike tools
-  'prose-mark:bg-yellow-200 prose-mark:text-[#242424] prose-mark:rounded-[2px] prose-mark:px-0.5',
-  '[&_s]:text-[#6B6B6B] [&_s]:decoration-[#6B6B6B]',
-  // Images — full-bleed within the measure, no shadow (Medium keeps images flat).
-  // Figures center themselves so the editor's small/medium width picker reads
-  // as an intentional inline image rather than a stray left-aligned thumbnail.
-  'prose-img:rounded-none prose-img:shadow-none',
+  'prose-strong:text-slate-900 prose-strong:font-semibold',
+  'prose-em:text-slate-800 prose-em:italic',
+  // Blockquote — modern callout with primary accent bar and subtle background tint
+  'prose-blockquote:font-sans prose-blockquote:border-l-[3.5px] prose-blockquote:border-primary/60',
+  'prose-blockquote:bg-slate-50/70 prose-blockquote:rounded-r-lg',
+  'prose-blockquote:pl-5 prose-blockquote:pr-4 prose-blockquote:py-2.5 prose-blockquote:my-6',
+  'prose-blockquote:text-slate-700 prose-blockquote:text-[16px] sm:prose-blockquote:text-[17.5px] prose-blockquote:leading-[1.65] prose-blockquote:italic',
+  // Horizontal rule
+  'prose-hr:border-slate-200 prose-hr:my-10',
+  // Table — crisp modern table styling
+  'prose-table:w-full prose-table:text-[14px] prose-table:font-sans',
+  'prose-thead:border-b-2 prose-thead:border-slate-200',
+  'prose-th:px-3.5 prose-th:py-2.5 prose-th:text-left prose-th:font-semibold prose-th:text-slate-900',
+  'prose-td:px-3.5 prose-td:py-2.5 prose-td:border-b prose-td:border-slate-100 prose-td:text-slate-700',
+  // Code — clean badge look
+  'prose-code:font-mono prose-code:bg-slate-100 prose-code:text-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[13.5px] prose-code:before:content-none prose-code:after:content-none',
+  'prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-lg prose-pre:p-4 prose-pre:font-mono prose-pre:text-[13.5px]',
+  // Highlight / strikethrough
+  'prose-mark:bg-yellow-100 prose-mark:text-slate-900 prose-mark:rounded-[2px] prose-mark:px-1',
+  '[&_s]:text-slate-400 [&_s]:decoration-slate-400',
+  // Images
+  'prose-img:rounded-xl prose-img:shadow-sm',
   '[&_figure]:mx-auto [&_figure]:text-center [&_figure_img]:mx-auto',
-  'prose-figcaption:font-sans prose-figcaption:text-[13px] prose-figcaption:text-[#6B6B6B] prose-figcaption:text-center prose-figcaption:mt-2',
-  // Related-post internal links — set apart as a callout card (border,
-  // background tint, non-italic, sans-serif label) instead of rendering
-  // like a normal pull-quote, the way top publishers style "Related:" boxes.
+  'prose-figcaption:font-sans prose-figcaption:text-[13px] prose-figcaption:text-slate-500 prose-figcaption:text-center prose-figcaption:mt-2',
+  // Related-post internal links
   "[&_blockquote[data-type='related-post']]:not-italic [&_blockquote[data-type='related-post']]:font-sans",
-  "[&_blockquote[data-type='related-post']]:border-l-[3px] [&_blockquote[data-type='related-post']]:border-violet-500",
-  "[&_blockquote[data-type='related-post']]:bg-violet-50/60 [&_blockquote[data-type='related-post']]:py-3 [&_blockquote[data-type='related-post']]:px-4",
-  "[&_blockquote[data-type='related-post']]:my-8 [&_blockquote[data-type='related-post']]:rounded-r-md",
-  "[&_blockquote[data-type='related-post']_a]:font-semibold [&_blockquote[data-type='related-post']_a]:text-[17px] [&_blockquote[data-type='related-post']_a]:no-underline [&_blockquote[data-type='related-post']_a]:text-violet-800",
-  "[&_blockquote[data-type='related-post']_a]:before:content-['📖_Related:_'] [&_blockquote[data-type='related-post']_a]:before:text-[13px] [&_blockquote[data-type='related-post']_a]:before:font-normal [&_blockquote[data-type='related-post']_a]:before:text-violet-500",
-  "[&_blockquote[data-type='related-post']_span]:block [&_blockquote[data-type='related-post']_span]:text-[14px] [&_blockquote[data-type='related-post']_span]:font-sans [&_blockquote[data-type='related-post']_span]:text-[#5A5A5A] [&_blockquote[data-type='related-post']_span]:mt-1 [&_blockquote[data-type='related-post']_span]:leading-snug",
+  "[&_blockquote[data-type='related-post']]:border-l-[3.5px] [&_blockquote[data-type='related-post']]:border-violet-500",
+  "[&_blockquote[data-type='related-post']]:bg-violet-50/70 [&_blockquote[data-type='related-post']]:py-3.5 [&_blockquote[data-type='related-post']]:px-4.5",
+  "[&_blockquote[data-type='related-post']]:my-7 [&_blockquote[data-type='related-post']]:rounded-r-lg",
+  "[&_blockquote[data-type='related-post']_a]:font-semibold [&_blockquote[data-type='related-post']_a]:text-[16px] [&_blockquote[data-type='related-post']_a]:no-underline [&_blockquote[data-type='related-post']_a]:text-violet-800",
+  "[&_blockquote[data-type='related-post']_a]:before:content-['📖_Related:_'] [&_blockquote[data-type='related-post']_a]:before:text-[13px] [&_blockquote[data-type='related-post']_a]:before:font-medium [&_blockquote[data-type='related-post']_a]:before:text-violet-500",
+  "[&_blockquote[data-type='related-post']_span]:block [&_blockquote[data-type='related-post']_span]:text-[13.5px] [&_blockquote[data-type='related-post']_span]:font-sans [&_blockquote[data-type='related-post']_span]:text-slate-600 [&_blockquote[data-type='related-post']_span]:mt-1 [&_blockquote[data-type='related-post']_span]:leading-snug",
 ].join(' ');

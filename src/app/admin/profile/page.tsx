@@ -96,6 +96,18 @@ const AdminProfilePage: React.FC = () => {
   // Active tab — controlled so we can trigger lazy fetches on tab switch
   const [activeTab, setActiveTab] = useState('kruthika');
 
+  // Listen to ?tab= query parameter on mount and browser navigation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const readTab = () => {
+      const p = new URLSearchParams(window.location.search).get('tab');
+      if (p) setActiveTab(p);
+    };
+    readTab();
+    window.addEventListener('popstate', readTab);
+    return () => window.removeEventListener('popstate', readTab);
+  }, []);
+
   // "View Full Dashboard" navigates to a separate route (/admin/analytics).
   // In dev, Next.js compiles routes on first visit (several seconds) — this
   // flag drives a spinner on the button so that wait doesn't look like a
@@ -516,6 +528,29 @@ const AdminProfilePage: React.FC = () => {
     }
   };
 
+  const handleToggleInstagramDetection = async (checked: boolean) => {
+    handleAdSettingChange('instagramDetectionEnabled', checked);
+    if (!db) return;
+    try {
+      const updated: AdSettings = { ...adSettings, instagramDetectionEnabled: checked };
+      const { error } = await db.from('app_configurations').upsert({
+        id: AD_SETTINGS_CONFIG_KEY,
+        settings: updated,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      try { await refreshAdSettingsContextRef.current(); } catch (_) {}
+      toast({
+        title: checked ? "📸 Instagram Detection Enabled" : "📸 Instagram Detection Disabled",
+        description: checked
+          ? "External browser escape payload (Android intent / iOS modal) is active for Instagram visitors."
+          : "Site will run normally inside Instagram without redirect or escape prompt.",
+      });
+    } catch (err: any) {
+      console.warn('Could not auto-save instagram setting:', err);
+    }
+  };
+
   const handleResetDirectLink = () => {
     setAdSettings(prev => ({ ...prev, adsterraDirectLink: '' }));
     toast({ title: "Direct Link Cleared", description: "Direct link URL cleared. Paste your own Adsterra link and click 'Save Ad Settings'." });
@@ -808,6 +843,9 @@ const AdminProfilePage: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger value="notifications" className="min-w-[116px] py-2.5 text-xs font-bold rounded-xl data-[state=active]:bg-violet-600 data-[state=active]:text-white transition-all">
                   <Bell className="mr-1.5 h-4 w-4"/> Push Alerts
+                </TabsTrigger>
+                <TabsTrigger value="instagram" className="min-w-[136px] py-2.5 text-xs font-bold rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-violet-600 data-[state=active]:text-white transition-all shadow-xs">
+                  <Globe className="mr-1.5 h-4 w-4 text-pink-300"/> Instagram Escape
                 </TabsTrigger>
                 <TabsTrigger value="ads" className="min-w-[116px] py-2.5 text-xs font-bold rounded-xl data-[state=active]:bg-violet-600 data-[state=active]:text-white transition-all">
                   <Settings className="mr-1.5 h-4 w-4"/> Ad Networks
@@ -1193,6 +1231,81 @@ const AdminProfilePage: React.FC = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="instagram">
+          <Card className="bg-card text-card-foreground mb-8 shadow-lg border-violet-100">
+            <CardHeader className="pb-4 border-b border-border/40">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center text-xl font-bold">
+                    <Globe className="mr-2 h-5 w-5 text-pink-600"/> 📸 Instagram Browser Detection &amp; Auto-Escape
+                  </CardTitle>
+                  <CardDescription className="text-sm mt-1">
+                    Control how the site behaves when visitors click your site link from Instagram, Threads, or other in-app web views.
+                  </CardDescription>
+                </div>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${
+                  (adSettings.instagramDetectionEnabled ?? true)
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}>
+                  {(adSettings.instagramDetectionEnabled ?? true) ? '● ACTIVE (Auto-Escape ON)' : '○ DISABLED (In-App Browsing)'}
+                </span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6 pt-6">
+              {/* Primary Toggle Switch */}
+              <div className="flex items-center justify-between p-5 bg-gradient-to-r from-violet-50/80 via-pink-50/50 to-amber-50/40 rounded-2xl border border-violet-200/80 shadow-xs">
+                <div className="space-y-1 pr-4">
+                  <Label htmlFor="instagramDetectionEnabledDedicated" className="text-base font-bold text-slate-900 cursor-pointer flex items-center gap-2">
+                    Enable Instagram In-App Browser Auto-Escape
+                  </Label>
+                  <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
+                    When ON: any user clicking your link on Instagram is immediately escaped to an external browser (Google Chrome on Android via intent payload, and guided to open Safari on iOS). This prevents cookie wipes, blocked logins, sound playback restrictions, and guarantees all ads and chats function normally.
+                  </p>
+                </div>
+                <Switch
+                  id="instagramDetectionEnabledDedicated"
+                  checked={adSettings.instagramDetectionEnabled ?? true}
+                  onCheckedChange={handleToggleInstagramDetection}
+                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-pink-500 data-[state=checked]:to-violet-600 ml-4 shrink-0"
+                />
+              </div>
+
+              {/* Breakdown cards */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-sm text-slate-800">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">1</span>
+                    Android Automatic Escape (Chrome Intent)
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Immediately fires a native Android intent (<code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[11px]">intent://...#Intent;scheme=https;package=com.android.chrome;end;</code>) that breaks the restricted WebView and launches Google Chrome automatically without requiring manual user tapping.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-sm text-slate-800">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">2</span>
+                    iOS Guide Overlay (Safari Escape)
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Displays an intuitive, high-converting banner with an arrow showing users how to tap the top-right <strong className="text-slate-700">••• menu</strong> and choose <strong className="text-slate-700">&quot;Open in external browser / Safari&quot;</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 flex items-start gap-3">
+                <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-900 leading-relaxed">
+                  <p className="font-semibold mb-0.5">Instant Global Sync</p>
+                  Changes made to this switch are automatically saved to your MySQL database (<code className="font-mono text-[11px] bg-white px-1 rounded border border-blue-200">app_configurations</code>) and take effect immediately across all visitors without restarting the server.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="ads">
            <Card className="bg-card text-card-foreground mb-8 shadow-lg">
             <CardHeader className="pb-4">
@@ -1220,7 +1333,7 @@ const AdminProfilePage: React.FC = () => {
                 <Switch
                   id="instagramDetectionEnabled"
                   checked={adSettings.instagramDetectionEnabled ?? true}
-                  onCheckedChange={(checked) => handleAdSettingChange('instagramDetectionEnabled', checked)}
+                  onCheckedChange={handleToggleInstagramDetection}
                   className="ml-4 shrink-0"
                 />
               </div>

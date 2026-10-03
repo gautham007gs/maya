@@ -45,6 +45,7 @@ import { ChatSkeleton } from "@/components/LoadingSkeleton";
 import { useDirectLinkAds } from "@/hooks/useDirectLinkAds";
 import { useAdSettings } from "@/contexts/AdSettingsContext";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useSiteImages } from "@/contexts/SiteImageContext";
 import { useAIMediaAssets } from "@/contexts/AIMediaAssetsContext";
 import { pickUnclaimed } from "@/lib/ad-code-registry";
 // AIGirlfriendFAQSchema moved to layout.tsx (server-side rendering for Googlebot)
@@ -756,6 +757,7 @@ const updateUserEmotionalState = (userMessage: string) => {
 const KruthikaChatPage: NextPage = React.memo(() => {
   const { adSettings, isLoadingAdSettings } = useAdSettings();
   const { aiProfile: globalAIProfile, isLoadingAIProfile } = useAIProfile();
+  const siteImages = useSiteImages();
   const { mediaAssetsConfig, isLoadingMediaAssets } = useAIMediaAssets();
 
   // Direct link ads system
@@ -765,6 +767,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
     onUserMessage: onDirectLinkUserMessage,
     onAIResponse: onDirectLinkAIResponse,
     closeAd: closeDirectLinkAd,
+    triggerDirectLinkClick,
   } = useDirectLinkAds();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -2948,6 +2951,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
       description: t.toastCallFeatureDesc,
       duration: 3000,
     });
+    triggerDirectLinkClick('call_video_header').catch(() => {});
   };
 
   // handleQuickReply needs to call handleSendMessage, which is a large
@@ -3245,6 +3249,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
   }, [toast]);
 
   const displayAIProfile = globalAIProfile || defaultAIProfile;
+  const effectiveAvatarUrl = siteImages.homepageAvatarUrl || displayAIProfile.avatarUrl;
 
   if (isLoadingChatState) {
     return <ChatSkeleton />;
@@ -3269,7 +3274,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
       <ChatShell
         isMounted={isMounted}
         aiName={displayAIProfile.name}
-        aiAvatarUrl={displayAIProfile.avatarUrl}
+        aiAvatarUrl={effectiveAvatarUrl}
         onlineStatus={onlineStatus}
         messages={messages}
         isAiTyping={isAiTyping}

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Bell, BookOpen, Command, FileText, FolderTree, Image as ImageIcon,
   LayoutDashboard, Menu, Plus, Search, Settings, Tag, Users, X, ChevronRight, ArrowRight,
-  BarChart3, Activity, LogOut, PanelLeftClose, PanelLeftOpen,
+  BarChart3, Activity, LogOut, PanelLeftClose, PanelLeftOpen, Globe,
 } from 'lucide-react';
 
 const navigation = [
@@ -19,6 +19,7 @@ const navigation = [
   { label: 'Media', href: '/admin/media', icon: ImageIcon },
   { label: 'Site Images', href: '/admin/site-images', icon: ImageIcon },
   { label: 'AI Health', href: '/admin/ai-health', icon: Activity },
+  { label: 'Instagram Escape', href: '/admin/profile?tab=instagram', icon: Globe },
   { label: 'Settings', href: '/admin/profile', icon: Settings },
 ];
 
@@ -96,7 +97,12 @@ export default function CmsWorkspaceShell({ children, title, eyebrow, actions, f
 
         <nav className="space-y-1">
           {navigation.map(({ label, href, icon: Icon }) => {
-            const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+            const baseHref = href.split('?')[0];
+            const active = href === '/admin'
+              ? pathname === '/admin'
+              : href.includes('?')
+                ? pathname === baseHref
+                : (pathname === href || (href !== '/admin/profile' && pathname.startsWith(href)));
             return (
               <Link
                 onClick={() => setMobileOpen(false)}

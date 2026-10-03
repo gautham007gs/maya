@@ -408,11 +408,12 @@ function AssetDetail({
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/media/${asset.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Delete failed');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Delete failed');
       onDeleted(asset.id);
       onClose();
-      toast({ title: 'Asset deleted' });
-    } catch { toast({ title: 'Delete failed', variant: 'destructive' }); }
+      toast({ title: 'Asset deleted ✓' });
+    } catch (err: any) { toast({ title: 'Delete failed', description: err.message, variant: 'destructive' }); }
     finally   { setDeleting(false); }
   };
 
@@ -728,18 +729,42 @@ export default function MediaLibrary({
 
   // ── Bulk delete ──────────────────────────────────────────────────────────
 
-  const bulkDelete = async () => {
+  const bulkDelete = async (force = false) => {
     if (!selected.length) return;
-    if (!window.confirm(`Delete ${selected.length} asset${selected.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+    const confirmMsg = force
+      ? `⚠️ Force delete ${selected.length} asset${selected.length > 1 ? 's' : ''}? These will be permanently deleted even if they are referenced in blog posts.`
+      : `Delete ${selected.length} asset${selected.length > 1 ? 's' : ''}? This cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
     try {
       const res = await fetch('/api/admin/media', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selected }),
+        body: JSON.stringify({ ids: selected, force }),
       });
-      if (!res.ok) throw new Error('Bulk delete failed');
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 409 && data.canForce) {
+        const forceConfirm = window.confirm(
+          `${data.error || 'Selected media is in use.'}\n\nDo you want to FORCE DELETE all selected items anyway?`
+        );
+        if (forceConfirm) {
+          return bulkDelete(true);
+        }
+        return;
+      }
+
+      if (!res.ok) throw new Error(data.error || 'Bulk delete failed');
+
       setSelected([]);
-      toast({ title: `${selected.length} asset${selected.length > 1 ? 's' : ''} deleted` });
+      if (data.skipped > 0) {
+        toast({
+          title: `${data.deleted} asset${data.deleted !== 1 ? 's' : ''} deleted`,
+          description: `${data.skipped} asset${data.skipped !== 1 ? 's were' : ' was'} skipped because they are used in blog posts.`,
+        });
+      } else {
+        toast({ title: `${data.deleted || selected.length} asset${(data.deleted || selected.length) !== 1 ? 's' : ''} deleted ✓` });
+      }
       loadAssets(1);
     } catch (err: any) {
       toast({ title: 'Delete failed', description: err.message, variant: 'destructive' });
@@ -835,7 +860,7 @@ export default function MediaLibrary({
 
         {/* Bulk actions */}
         {selected.length > 0 && (
-          <button onClick={bulkDelete}
+          <button onClick={() => bulkDelete(false)}
             className="flex items-center gap-1.5 px-3 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-xl hover:bg-red-200 transition-colors">
             <Trash2 className="h-3.5 w-3.5" /> Delete {selected.length}
           </button>

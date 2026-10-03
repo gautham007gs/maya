@@ -80,6 +80,12 @@ export async function getAuthorNameAliasesBySlug(slug: string): Promise<string[]
   } catch { /* DB unavailable — caller still has the static fallback */ }
   const staticAuthor = getAuthorBySlug(slug);
   if (staticAuthor?.name) aliases.add(staticAuthor.name.trim().toLowerCase());
+  if (['editorial-team', 'editorial team', 'kruthika-fun-team', 'kruthika-team'].includes(slug)) {
+    aliases.add('editorial team');
+    aliases.add('editorial-team');
+    aliases.add('kruthika.fun team');
+    aliases.add('kruthika team');
+  }
   return Array.from(aliases);
 }
 

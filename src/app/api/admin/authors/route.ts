@@ -20,7 +20,27 @@ export async function GET(request: NextRequest) {
       page: Number(params.get('page')) || 1,
       perPage: Number(params.get('perPage')) || 20,
     });
-    return NextResponse.json(result);
+    const hasEditorialTeam = (result.authors || []).some(
+      (a: any) => (a.name || a.display_name || '').toLowerCase() === 'editorial team',
+    );
+    const authors = hasEditorialTeam
+      ? result.authors
+      : [
+          {
+            id: 0,
+            name: 'Editorial Team',
+            display_name: 'Editorial Team',
+            slug: 'editorial-team',
+            designation: 'AI Companionship & Relationship Psychology Specialists',
+            bio: 'The Kruthika AI Editorial Team is a multidisciplinary group of conversational AI researchers, relationship psychologists, and digital wellness practitioners delivering fact-checked, empathetic, and expert-reviewed guides.',
+            avatar_url: '/kruthika-avatar.svg',
+            status: 'active',
+            role: 'editor',
+            is_verified: true,
+          },
+          ...(result.authors || []),
+        ];
+    return NextResponse.json({ ...result, authors });
   } catch {
     return NextResponse.json({ error: 'Author storage is not ready. Run database/10_taxonomy_management.sql against your MySQL database.' }, { status: 503 });
   }

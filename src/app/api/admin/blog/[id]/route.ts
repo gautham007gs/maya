@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminSession } from '@/lib/admin-auth';
-import { getPostByIdAdmin, updatePost, slugify, estimateReadingStats, createPostRevision, savePostRedirect, updatePostLifecycle, invalidateBlogCache } from '@/lib/blog-db';
+import { getPostByIdAdmin, updatePost, slugify, estimateReadingStats, createPostRevision, savePostRedirect, updatePostLifecycle, deletePost, invalidateBlogCache } from '@/lib/blog-db';
 import { pingIndexNow, blogUrl } from '@/lib/indexnow';
 import type { SchemaType } from '@/lib/blog-db';
 import { sanitizeCmsFaqItems, sanitizeCmsHtml, validateAbsoluteHttpUrl, validateCmsFieldLimits, validateCmsMediaUrl, validatePublishFields, validateScheduledFields } from '@/lib/cms-content';
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const body = await request.json();
     const {
       title, slug: rawSlug, excerpt, content, author, author_title,
-       category_id, status, featured_image, featured_image_alt, schema_type,
+       category_id, status, featured_image, featured_image_alt, featured_image_caption, schema_type,
       tags, seo_title, seo_description, seo_keywords, long_tail_keywords,
       og_image, og_title, og_description, twitter_title, twitter_description,
       canonical_url, noindex, faq_items,
@@ -162,13 +162,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
       ...(finalSlug    !== undefined && { slug: finalSlug }),
       ...(excerpt      !== undefined && { excerpt: excerpt?.trim() || null }),
        ...(contentToSave !== undefined && { content: sanitizeCmsHtml(contentToSave) }),
-      ...(author       !== undefined && { author: author?.trim() || 'Kruthika.fun Team' }),
+      ...(author       !== undefined && { author: author?.trim() || 'Editorial Team' }),
       ...(author_title !== undefined && { author_title: author_title?.trim() || null }),
       ...(category_id  !== undefined && { category_id: category_id ? Number(category_id) : null }),
       ...(finalStatus  !== undefined && { status: finalStatus }),
       ...(featured_image !== undefined && { featured_image: featured_image?.trim() || null }),
       ...(date_published !== undefined && { date_published: date_published || null }),
        ...(featured_image_alt !== undefined && { featured_image_alt: featured_image_alt?.trim() || null }),
+       ...(featured_image_caption !== undefined && { featured_image_caption: featured_image_caption?.trim() || null }),
        ...(schema_type !== undefined && { schema_type }),
       ...(tags         !== undefined && { tags: Array.isArray(tags) ? tags.filter(Boolean) : [] }),
       // Always persist normalized metadata, even when an older client omits
@@ -238,9 +239,17 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   const { id } = await params;
   const post = await getPostByIdAdmin(Number(id));
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  // A standard delete is reversible. Permanent deletion is restricted to the
-  // explicit bulk action and only applies to already-trashed posts.
-  await updatePostLifecycle([Number(id)], 'trash');
+  
+  const searchParams = request.nextUrl.searchParams;
+  const forcePermanent = searchParams.get('permanent') === 'true';
+
+  // If already in trash, or if requested explicitly, permanently delete the post.
+  // Otherwise, safely transition it to the trash folder.
+  if (post.status === 'trash' || forcePermanent) {
+    await deletePost(Number(id));
+  } else {
+    await updatePostLifecycle([Number(id)], 'trash');
+  }
   await refreshPublicBlog([post.slug]);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, permanentlyDeleted: post.status === 'trash' || forcePermanent });
 }

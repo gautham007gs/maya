@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdSettings } from '@/contexts/AdSettingsContext';
 import { analyticsTracker } from '@/lib/analytics-tracker';
 import { isAdvertisingAllowed } from '@/lib/consent';
+import { openAdUrl } from '@/lib/instagram-browser';
 
 interface DirectLinkAdState {
   shouldShow: boolean;
@@ -115,6 +116,36 @@ export function useDirectLinkAds() {
     });
   }, []);
 
+  // Direct programmatic trigger (e.g. Call / Video buttons) with smart fatigue & capping protection
+  const triggerDirectLinkClick = useCallback(async (source = 'call_video'): Promise<boolean> => {
+    if (!canShowAd()) return false;
+
+    // Smart fatigue protection: Minimum 45 seconds cooldown between automated direct link openings
+    const lastShown = parseInt(localStorage.getItem(STORAGE_KEY_LAST_SHOWN) || '0', 10);
+    const now = Date.now();
+    if (now - lastShown < 45000) {
+      return false;
+    }
+
+    // Check server-authoritative and session caps
+    const allowed = await checkServerCap(true);
+    if (!allowed) return false;
+
+    const url = getDirectLinkUrl();
+    if (!url) return false;
+
+    const dailyCount = parseInt(localStorage.getItem(STORAGE_KEY_DAILY_COUNT) || '0', 10);
+    const sessionCount = parseInt(localStorage.getItem(STORAGE_KEY_SESSION_COUNT) || '0', 10);
+    localStorage.setItem(STORAGE_KEY_DAILY_COUNT, String(dailyCount + 1));
+    localStorage.setItem(STORAGE_KEY_SESSION_COUNT, String(sessionCount + 1));
+    localStorage.setItem(STORAGE_KEY_LAST_SHOWN, String(now));
+    analyticsTracker.trackAdInteractionPublic('direct-link', 'click', `adsterra-${source}`).catch(() => {});
+
+    // Open safely (supports Instagram in-app browser & popup blockers)
+    openAdUrl(url);
+    return true;
+  }, [canShowAd, checkServerCap, getDirectLinkUrl]);
+
   // Track user messages
   const onUserMessage = useCallback(() => {
     if (isLoadingAdSettings || !adSettings) return;
@@ -170,6 +201,7 @@ export function useDirectLinkAds() {
     onUserMessage,
     onAIResponse,
     closeAd,
-    triggerAd
+    triggerAd,
+    triggerDirectLinkClick
   };
 }

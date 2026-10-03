@@ -75,7 +75,8 @@ export function AvatarProfileDialog({
             aiAvatarUrl !==
               "https://placehold.co/100x100.png/E91E63/FFFFFF?text=K" &&
             (aiAvatarUrl.startsWith("http") ||
-              aiAvatarUrl.startsWith("data:")) ? (
+              aiAvatarUrl.startsWith("data:") ||
+              aiAvatarUrl.startsWith("/")) ? (
               <div className="relative w-44 h-44 rounded-full overflow-hidden border-4 border-gray-200 shadow-2xl">
                 <Image
                   key={`zoomed-${aiAvatarUrl}`}

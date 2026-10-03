@@ -66,19 +66,19 @@ function PostCard({ post }: { post: DbBlogPost }) {
       })
     : '';
   return (
-    <article className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow">
+    <article className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow h-full flex flex-col">
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
         {date && <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{date}</span>}
         <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />{post.reading_time_minutes} min read</span>
       </div>
-      <h2 className="text-xl font-bold mb-2">
+      <h2 className="text-lg sm:text-xl font-bold mb-2">
         <a href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">{post.title}</a>
       </h2>
       {(post.excerpt || post.seo_description) && (
-        <p className="text-muted-foreground leading-relaxed line-clamp-3 mb-4">{post.excerpt || post.seo_description}</p>
+        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4 flex-1">{post.excerpt || post.seo_description}</p>
       )}
-      <a href={`/blog/${post.slug}`} className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:underline">
-        Read article <ArrowRight className="h-4 w-4" />
+      <a href={`/blog/${post.slug}`} className="inline-flex items-center gap-1.5 text-primary font-medium text-sm hover:underline mt-auto">
+        Read article <ArrowRight className="h-3.5 w-3.5" />
       </a>
     </article>
   );
@@ -126,7 +126,7 @@ export default async function BlogCategoryPage({ params }: Props) {
         { name: category.name, url },
       ]} />
       <main id="main-content" className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4 py-10 sm:py-14">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground flex items-center gap-2 mb-8">
             <a href="/" className="hover:text-primary">Home</a><span>/</span>
             <a href="/blog" className="hover:text-primary">Blog</a><span>/</span>
@@ -136,13 +136,13 @@ export default async function BlogCategoryPage({ params }: Props) {
             <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary mb-3">
               <Tag className="h-4 w-4" /> Blog category
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">{category.name}</h1>
-            <p className="max-w-2xl mx-auto text-lg text-muted-foreground leading-relaxed">
+            <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">{category.name}</h1>
+            <p className="max-w-xl mx-auto text-base text-muted-foreground leading-relaxed">
               {category.description || `Guides, insights, and practical advice about ${category.name}.`}
             </p>
           </header>
           {posts.length > 0 ? (
-            <div className="grid gap-5">{posts.map(post => <PostCard key={post.slug} post={post} />)}</div>
+            <div className="grid sm:grid-cols-2 gap-5">{posts.map(post => <PostCard key={post.slug} post={post} />)}</div>
           ) : (
             <div className="rounded-xl border border-dashed border-border p-12 text-center text-muted-foreground">
               No published articles are available in this category yet.

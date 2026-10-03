@@ -93,11 +93,11 @@ export default function BlogPreview({ post, onClose }: BlogPreviewProps) {
             {post.category_name && (
               <p className="text-xs font-semibold uppercase tracking-wide text-violet-600 mb-3">{post.category_name}</p>
             )}
-            <h1 className="font-serif font-bold text-[#242424] text-[32px] sm:text-[42px] leading-[1.2] tracking-[-0.02em] mb-4">
+            <h1 className="font-sans font-extrabold text-slate-900 text-[26px] sm:text-[34px] leading-[1.22] tracking-[-0.025em] mb-4">
               {post.title || 'Untitled post'}
             </h1>
             {post.excerpt && (
-              <p className="font-serif text-[19px] text-[#6B6B6B] leading-[1.5] mb-5">{post.excerpt}</p>
+              <p className="font-sans text-[16px] sm:text-[18px] text-slate-600 leading-[1.6] mb-5">{post.excerpt}</p>
             )}
             <div className="flex items-center gap-3 mb-8 pb-8 border-b border-[#F2F2F2]">
               <div className="h-11 w-11 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-sm shrink-0">

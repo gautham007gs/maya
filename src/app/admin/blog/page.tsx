@@ -124,6 +124,62 @@ export default function AdminBlogPage() {
     } finally { setWorking(false); }
   };
 
+  const handleEmptyTrash = async () => {
+    const trashCount = counts.trash || 0;
+    if (!confirm(`Are you sure you want to permanently delete all ${trashCount} post${trashCount === 1 ? '' : 's'} in the trash? This cannot be undone.`)) return;
+    setWorking(true);
+    try {
+      const res = await fetch('/api/admin/blog', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'empty_trash' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to empty trash');
+      toast({ title: 'Trash emptied', description: `Permanently removed ${data.deleted ?? 0} post(s).` });
+      await fetchPosts();
+    } catch (error: any) {
+      toast({ title: 'Action failed', description: error.message, variant: 'destructive' });
+    } finally { setWorking(false); }
+  };
+
+  const handleSingleRestore = async (id: number) => {
+    setWorking(true);
+    try {
+      const res = await fetch('/api/admin/blog', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [id], action: 'restore' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Restore failed');
+      toast({ title: 'Post restored to draft ✓' });
+      await fetchPosts();
+    } catch (error: any) {
+      toast({ title: 'Restore failed', description: error.message, variant: 'destructive' });
+    } finally { setWorking(false); }
+  };
+
+  const handleSingleDelete = async (id: number, permanent: boolean) => {
+    if (permanent) {
+      if (!confirm('Are you sure you want to permanently delete this post? This cannot be undone.')) return;
+    } else {
+      if (!confirm('Move this post to the trash? You can restore it later from the Trash tab.')) return;
+    }
+    setWorking(true);
+    try {
+      const res = await fetch(`/api/admin/blog/${id}${permanent ? '?permanent=true' : ''}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Delete failed');
+      toast({ title: permanent ? 'Post permanently deleted' : 'Post moved to trash' });
+      await fetchPosts();
+    } catch (error: any) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    } finally { setWorking(false); }
+  };
+
   const exportCsv = () => {
     const params = new URLSearchParams({ export: 'csv', status, search, sort });
     if (category) params.set('category', category);
@@ -222,19 +278,37 @@ export default function AdminBlogPage() {
           </div>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex gap-2 flex-wrap items-center">
-          {statuses.map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize border transition-all ${
-                status === s ? 'border-violet-500 bg-violet-600 text-white shadow-xs' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-              }`}
+        {/* Filter Pills & Trash Actions */}
+        <div className="flex gap-2 flex-wrap items-center justify-between">
+          <div className="flex gap-2 flex-wrap items-center">
+            {statuses.map(s => {
+              const activeCount = (counts.published || 0) + (counts.review || 0) + (counts.scheduled || 0) + (counts.draft || 0) + (counts.archived || 0);
+              const countLabel = s === 'all' ? activeCount : (counts[s] || 0);
+              return (
+                <button
+                  key={s}
+                  onClick={() => setFilter(s)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize border transition-all ${
+                    status === s ? 'border-violet-500 bg-violet-600 text-white shadow-xs' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {s === 'all' ? `All (${countLabel})` : `${s} (${countLabel})`}
+                </button>
+              );
+            })}
+          </div>
+
+          {status === 'trash' && (counts.trash || 0) > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={working}
+              onClick={handleEmptyTrash}
+              className="rounded-xl shadow-xs"
             >
-              {s === 'all' ? `All (${Object.values(counts).reduce((a, b) => a + b, 0)})` : `${s} (${counts[s] || 0})`}
-            </button>
-          ))}
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Empty Trash ({counts.trash})
+            </Button>
+          )}
         </div>
 
         {/* Bulk Action Bar */}
@@ -342,17 +416,52 @@ export default function AdminBlogPage() {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setInspectPost(post)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
-                      title="Quick Inspect"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <Button variant="outline" size="sm" onClick={() => router.push(`/admin/blog/${post.id}/edit`)}>
-                      <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
-                    </Button>
+                    {post.status === 'trash' ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={working}
+                          onClick={() => handleSingleRestore(post.id)}
+                          className="h-8 px-2 text-xs text-slate-700 hover:text-emerald-700 hover:border-emerald-300"
+                          title="Restore to Draft"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={working}
+                          onClick={() => handleSingleDelete(post.id, true)}
+                          className="h-8 px-2 text-xs"
+                          title="Delete Permanently"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete Forever
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setInspectPost(post)}
+                          className="p-2 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                          title="Quick Inspect"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/admin/blog/${post.id}/edit`)}>
+                          <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => handleSingleDelete(post.id, false)}
+                          className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Move to Trash"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </article>
@@ -408,12 +517,47 @@ export default function AdminBlogPage() {
                       <td className="p-4 text-slate-500">{post.word_count} words</td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Button variant="ghost" size="sm" onClick={() => setInspectPost(post)} title="Quick inspect">
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => router.push(`/admin/blog/${post.id}/edit`)}>
-                            Edit
-                          </Button>
+                          {post.status === 'trash' ? (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={working}
+                                onClick={() => handleSingleRestore(post.id)}
+                                className="h-8 px-2 text-xs text-slate-700 hover:text-emerald-700 hover:border-emerald-300"
+                                title="Restore to Draft"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                disabled={working}
+                                onClick={() => handleSingleDelete(post.id, true)}
+                                className="h-8 px-2 text-xs"
+                                title="Delete Permanently"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete Forever
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button variant="ghost" size="sm" onClick={() => setInspectPost(post)} title="Quick inspect">
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => router.push(`/admin/blog/${post.id}/edit`)}>
+                                Edit
+                              </Button>
+                              <button
+                                type="button"
+                                onClick={() => handleSingleDelete(post.id, false)}
+                                className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                title="Move to Trash"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -36,7 +36,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   const { t } = useLanguage();
 
   let avatarUrlToUse = aiAvatarUrl; 
-  if (!avatarUrlToUse || typeof avatarUrlToUse !== 'string' || avatarUrlToUse.trim() === '' || (!avatarUrlToUse.startsWith('http') && !avatarUrlToUse.startsWith('data:'))) {
+  if (!avatarUrlToUse || typeof avatarUrlToUse !== 'string' || avatarUrlToUse.trim() === '' || (!avatarUrlToUse.startsWith('http') && !avatarUrlToUse.startsWith('data:') && !avatarUrlToUse.startsWith('/'))) {
     avatarUrlToUse = defaultAIProfile.avatarUrl;
   }
 

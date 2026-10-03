@@ -37,26 +37,44 @@ export interface Author {
   postsCount?: number;   // Updated at runtime by getPostsByAuthorSlug
 }
 
-// Intentionally empty — see file header. Real authors live in the
-// `blog_authors` table and are managed from /admin/authors.
-const AUTHORS: Author[] = [];
+export const DEFAULT_AUTHOR: Author = {
+  slug: 'editorial-team',
+  name: 'Editorial Team',
+  title: 'AI Companionship & Relationship Psychology Specialists',
+  bio: 'The Kruthika AI Editorial Team is a multidisciplinary group of conversational AI researchers, relationship psychologists, and digital wellness practitioners delivering fact-checked, empathetic, and expert-reviewed guides.',
+  avatar: '/kruthika-avatar.svg',
+  expertise: ['Conversational AI', 'Relationship Psychology', 'Virtual Companionship', 'Digital Wellbeing', 'Emotional AI'],
+  location: 'Bengaluru, India',
+  seo_title: 'Kruthika AI Editorial Team — Expert Guides & Research',
+  seo_description: 'Fact-checked articles and relationship insights published by the Kruthika AI Editorial Team.',
+};
+
+// Default fallback list includes the authoritative Editorial Team
+const AUTHORS: Author[] = [DEFAULT_AUTHOR];
 
 
 // ── Lookup helpers ──────────────────────────────────────────────────────────
 
 /** Find author by slug (used on author pages) */
 export function getAuthorBySlug(slug: string): Author | null {
+  if (!slug || !slug.trim() || ['editorial-team', 'editorial team', 'kruthika-fun-team', 'kruthika-team'].includes(slug)) {
+    return DEFAULT_AUTHOR;
+  }
   return AUTHORS.find(a => a.slug === slug) ?? null;
 }
 
 /** Find author by their display name (used when rendering a blog post) */
-export function getAuthorByName(name: string): Author | null {
+export function getAuthorByName(name?: string | null): Author | null {
+  if (!name || !name.trim()) return DEFAULT_AUTHOR;
   const normalized = name.trim().toLowerCase();
+  if (['editorial team', 'editorial-team', 'kruthika.fun team', 'kruthika team', 'admin'].includes(normalized)) {
+    return DEFAULT_AUTHOR;
+  }
   return (
     AUTHORS.find(a => a.name.toLowerCase() === normalized) ??
     // Fallback: try slug-match from the name
     AUTHORS.find(a => a.slug === nameToSlug(normalized)) ??
-    null
+    DEFAULT_AUTHOR
   );
 }
 

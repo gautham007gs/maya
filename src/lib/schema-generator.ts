@@ -106,7 +106,7 @@ function publisherBlock(name?: string, logo?: string) {
 function authorBlock(name?: string, title?: string, url?: string) {
   return {
     '@type': 'Person',
-    name: name || 'Kruthika.fun Team',
+    name: name || 'Editorial Team',
     ...(title ? { description: title } : {}),
     ...(url   ? { url }               : {}),
   };
@@ -511,127 +511,144 @@ export function computeSeoScore(post: {
 
   const content    = post.content || '';
   const wordCount  = post.word_count || stripHtml(content).split(/\s+/).filter(Boolean).length;
-  const seoTitle   = post.seo_title || post.title;
-  const seoDesc    = post.seo_description || post.excerpt || '';
+  const seoTitle   = (post.seo_title || post.title || '').trim();
+  const seoDesc    = (post.seo_description || post.excerpt || '').trim();
   const hasFaq     = (post.faq_items?.length ?? 0) > 0;
 
-  // ── Title (15 pts) ────────────────────────────────────────────────────
-  if (!post.title?.trim()) {
-    issues.push({ type: 'error', field: 'title', message: 'Title is missing' });
-  } else if (seoTitle.length >= 30 && seoTitle.length <= 65) {
+  // ── 1. Title Optimization (15 pts) — SERP pixel budget & CTR ─────────────
+  if (!seoTitle) {
+    issues.push({ type: 'error', field: 'title', message: 'Title is missing — search engines require a clear title' });
+  } else if (seoTitle.length >= 35 && seoTitle.length <= 60) {
     score += 15;
-  } else if (seoTitle.length > 0) {
-    score += 8;
-    issues.push({ type: 'warning', field: 'seo_title', message: `Title length ${seoTitle.length} chars — aim for 30-65` });
-  }
-
-  // ── Meta description (10 pts) ─────────────────────────────────────────
-  if (!seoDesc) {
-    issues.push({ type: 'error', field: 'seo_description', message: 'Meta description is missing' });
-  } else if (seoDesc.length >= 100 && seoDesc.length <= 165) {
+  } else if (seoTitle.length >= 25 && seoTitle.length <= 68) {
     score += 10;
-  } else {
-    score += 5;
-    issues.push({ type: 'warning', field: 'seo_description', message: `Description ${seoDesc.length} chars — aim for 100-165` });
-  }
-
-  // ── Featured image + alt text (10 pts) ───────────────────────────────
-  if (!post.featured_image) {
-    issues.push({ type: 'error', field: 'featured_image', message: 'Featured image is missing' });
-  } else if (!post.featured_image_alt) {
-    score += 5;
-    issues.push({ type: 'error', field: 'featured_image_alt', message: 'Featured image is missing alt text' });
-  } else {
-    score += 10;
-  }
-
-  // ── Word count (15 pts) ───────────────────────────────────────────────
-  if (wordCount >= 1500) {
-    score += 15;
-  } else if (wordCount >= 800) {
-    score += 10;
-    issues.push({ type: 'info', field: 'content', message: `${wordCount} words — aim for 1,500+ for best rankings` });
-  } else if (wordCount >= 300) {
-    score += 5;
-    issues.push({ type: 'warning', field: 'content', message: `${wordCount} words — thin content, aim for 800+ words` });
-  } else {
-    issues.push({ type: 'error', field: 'content', message: `${wordCount} words — content is too short` });
-  }
-
-  // ── Keywords (10 pts) ─────────────────────────────────────────────────
-  if (post.seo_keywords?.trim()) {
-    score += 5;
-    // Check primary keyword in title
-    const primaryKw = post.seo_keywords.split(',')[0].trim().toLowerCase();
-    if (primaryKw && seoTitle.toLowerCase().includes(primaryKw)) {
-      score += 5;
+    if (seoTitle.length > 60) {
+      issues.push({ type: 'warning', field: 'seo_title', message: `Title is ${seoTitle.length} characters — may truncate on Google mobile screens (aim for 35–60)` });
     } else {
-      issues.push({ type: 'warning', field: 'seo_keywords', message: 'Primary keyword not found in title' });
+      issues.push({ type: 'info', field: 'seo_title', message: `Title is ${seoTitle.length} characters — slightly brief (aim for 35–60 for best CTR)` });
+    }
+  } else if (seoTitle.length > 68) {
+    score += 6;
+    issues.push({ type: 'warning', field: 'seo_title', message: `Title is ${seoTitle.length} characters and will be cut off with "…" on Google search results` });
+  } else {
+    score += 4;
+    issues.push({ type: 'warning', field: 'seo_title', message: 'Title is too short to communicate topic depth to search engines' });
+  }
+
+  // ── 2. Meta Description (15 pts) — SERP snippet preview & click-through ──
+  if (!seoDesc) {
+    issues.push({ type: 'error', field: 'seo_description', message: 'Meta description is missing — Google will generate an arbitrary snippet' });
+  } else if (seoDesc.length >= 110 && seoDesc.length <= 160) {
+    score += 15;
+  } else if (seoDesc.length >= 80 && seoDesc.length <= 175) {
+    score += 10;
+    if (seoDesc.length > 160) {
+      issues.push({ type: 'info', field: 'seo_description', message: `Description is ${seoDesc.length} characters — could be trimmed slightly to prevent mobile truncation` });
+    } else {
+      issues.push({ type: 'info', field: 'seo_description', message: `Description is ${seoDesc.length} characters — aim for 110–160 characters for a rich snippet` });
     }
   } else {
-    issues.push({ type: 'warning', field: 'seo_keywords', message: 'No keywords defined' });
-  }
-
-  // ── Long-tail keywords (5 pts) ────────────────────────────────────────
-  if ((post.long_tail_keywords?.length ?? 0) >= 3) {
     score += 5;
-  } else {
-    issues.push({ type: 'info', field: 'long_tail_keywords', message: 'Add 3+ long-tail keywords' });
+    issues.push({ type: 'warning', field: 'seo_description', message: `Description length (${seoDesc.length} chars) is outside optimal snippet bounds (110–160)` });
   }
 
-  // ── Author (5 pts) ────────────────────────────────────────────────────
-  if (post.author?.trim() && post.author_title?.trim()) {
-    score += 5;
-  } else if (post.author?.trim()) {
-    score += 2;
-    issues.push({ type: 'info', field: 'author_title', message: 'Add author credentials for E-E-A-T' });
-  } else {
-    issues.push({ type: 'warning', field: 'author', message: 'Author name is missing' });
-  }
-
-  // ── Schema / FAQ (10 pts) ─────────────────────────────────────────────
-  if (hasFaq) {
+  // ── 3. Content Depth & Helpfulness (20 pts) — Google Helpful Content ─────
+  if (wordCount >= 1200) {
+    score += 20;
+  } else if (wordCount >= 800) {
+    score += 16;
+    issues.push({ type: 'info', field: 'content', message: `Comprehensive article (${wordCount} words) — expand to 1,200+ words for maximum topical authority` });
+  } else if (wordCount >= 450) {
     score += 10;
-  } else {
-    score += 3;
-    issues.push({ type: 'info', field: 'faq_items', message: 'Add FAQ content to improve topical depth and help AI systems understand this page' });
-  }
-
-  // ── Internal links (5 pts) ────────────────────────────────────────────
-  const internalLinks = (content.match(/href="\/[^"]+"/gi) || []).length;
-  if (internalLinks >= 2) {
+    issues.push({ type: 'warning', field: 'content', message: `${wordCount} words — moderate depth; adding more examples and depth will improve ranking signals` });
+  } else if (wordCount >= 200) {
     score += 5;
+    issues.push({ type: 'warning', field: 'content', message: `${wordCount} words — thin content risk. Google favors comprehensive, helpful coverage` });
   } else {
-    issues.push({ type: 'warning', field: 'content', message: `Only ${internalLinks} internal links — add 2+ for better crawlability` });
+    issues.push({ type: 'error', field: 'content', message: `${wordCount} words — content is too short for search engine indexing` });
   }
 
-  // ── OG / Social (5 pts) ───────────────────────────────────────────────
-  const hasOg = !!(post.og_image || post.featured_image);
-  if (hasOg && (post.og_title || post.seo_title || post.title)) {
-    score += 5;
-  } else {
-    issues.push({ type: 'info', field: 'og_image', message: 'Set OG image + title for better social shares' });
-  }
-
-  // ── Headings check (5 pts) ────────────────────────────────────────────
-  const h2Count = (content.match(/<h[23456][^>]*>/gi) || []).length;
+  // ── 4. Content Structure & Scannability (15 pts) — Readability & UX ──────
+  // Subheadings (8 pts)
+  const h2Count = (content.match(/<h[234][^>]*>/gi) || []).length;
   if (h2Count >= 2) {
-    score += 5;
+    score += 8;
+  } else if (h2Count === 1) {
+    score += 4;
+    issues.push({ type: 'warning', field: 'content', message: 'Add at least 2 subheadings (H2/H3) to break up content for scannability' });
   } else {
-    issues.push({ type: 'warning', field: 'content', message: 'Add at least 2 subheadings (H2/H3) to improve readability' });
+    issues.push({ type: 'error', field: 'content', message: 'No subheadings (H2/H3) detected — essential for skimmability and Google passage ranking' });
   }
 
-  // ── Missing inline image alt ──────────────────────────────────────────
-  const imgTotal  = (content.match(/<img[^>]+>/gi) || []).length;
-  const imgNoAlt  = (content.match(/<img(?![^>]*\balt\s*=\s*"[^"]+")[^>]*>/gi) || []).length;
-  if (imgTotal > 0 && imgNoAlt > 0) {
-    issues.push({ type: 'error', field: 'content', message: `${imgNoAlt} inline image${imgNoAlt > 1 ? 's' : ''} missing alt text` });
+  // Structured elements: lists, tables, callouts (7 pts)
+  const hasLists = /<(?:ul|ol|table|blockquote)\b/i.test(content);
+  if (hasLists) {
+    score += 7;
+  } else {
+    score += 2;
+    issues.push({ type: 'info', field: 'content', message: 'Add bullet points, numbered lists, or callouts to improve readability and featured snippet eligibility' });
+  }
+
+  // ── 5. E-E-A-T & Author Authority (15 pts) — Experience, Expertise, Trust ──
+  const authorName = (post.author || '').trim();
+  const authorTitle = (post.author_title || '').trim();
+  const isEditorialTeam = ['editorial team', 'editorial-team', 'kruthika.fun team'].includes(authorName.toLowerCase());
+
+  if (authorName && (authorTitle || isEditorialTeam)) {
+    score += 10;
+  } else if (authorName) {
+    score += 6;
+    issues.push({ type: 'info', field: 'author_title', message: 'Add author credentials/designation to strengthen Google E-E-A-T trust signals' });
+  } else {
+    issues.push({ type: 'warning', field: 'author', message: 'No author assigned — Google E-E-A-T strongly favors content with clear authorship' });
+  }
+
+  // Structured data schema (5 pts)
+  if (post.schema_type && ['BlogPosting', 'Article', 'TechArticle', 'NewsArticle', 'HowTo'].includes(post.schema_type)) {
+    score += 5;
+  } else {
+    score += 2;
+  }
+
+  // ── 6. Media & Accessibility (10 pts) — Core Web Vitals & Image SEO ───────
+  if (post.featured_image?.trim() && post.featured_image_alt?.trim()) {
+    score += 6;
+  } else if (post.featured_image?.trim()) {
+    score += 3;
+    issues.push({ type: 'warning', field: 'featured_image_alt', message: 'Featured image is missing alt text (important for accessibility and image search)' });
+  } else {
+    issues.push({ type: 'warning', field: 'featured_image', message: 'No featured hero image set — reduces visual engagement and social sharing CTR' });
+  }
+
+  // Inline images alt check (4 pts)
+  const imgTotal = (content.match(/<img[^>]+>/gi) || []).length;
+  const imgNoAlt = (content.match(/<img(?![^>]*\balt\s*=\s*"[^"]+")[^>]*>/gi) || []).length;
+  if (imgTotal === 0 || imgNoAlt === 0) {
+    score += 4;
+  } else {
+    issues.push({ type: 'warning', field: 'content', message: `${imgNoAlt} inline image${imgNoAlt > 1 ? 's are' : ' is'} missing descriptive alt text` });
+  }
+
+  // ── 7. Internal Linking & Topical Clustering (10 pts) ────────────────────
+  const internalLinks = (content.match(/href="(?:\/|https?:\/\/(?:www\.)?kruthika\.fun\/)[^"]*"/gi) || []).length;
+  if (internalLinks >= 2) {
+    score += 10;
+  } else if (internalLinks === 1) {
+    score += 6;
+    issues.push({ type: 'info', field: 'content', message: 'Only 1 internal link detected — add 2+ internal links to strengthen topic clusters' });
+  } else {
+    issues.push({ type: 'warning', field: 'content', message: 'No internal links found — linking to related articles helps Google crawl and index your site' });
+  }
+
+  // ── Bonus FAQ / Rich Snippet Confirmation ─────────────────────────────────
+  if (hasFaq) {
+    issues.push({ type: 'info', field: 'faq_items', message: `${post.faq_items?.length} FAQ items detected — automatically generating FAQPage schema for search snippets` });
   }
 
   const readabilityScore = computeReadabilityScore(content);
 
   return {
-    seoScore: Math.min(100, score),
+    seoScore: Math.min(100, Math.round(score)),
     readabilityScore,
     issues,
   };

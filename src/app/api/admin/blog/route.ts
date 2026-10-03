@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminSession } from '@/lib/admin-auth';
-import { getPostsAdminPage, getCategories, createPost, slugify, estimateReadingStats, updatePostLifecycle, permanentlyDeletePosts, duplicatePost, getPostByIdAdmin, invalidateBlogCache } from '@/lib/blog-db';
+import { getPostsAdminPage, getCategories, createPost, slugify, estimateReadingStats, updatePostLifecycle, permanentlyDeletePosts, emptyTrashPosts, duplicatePost, getPostByIdAdmin, invalidateBlogCache } from '@/lib/blog-db';
 import { pingIndexNow, blogUrl } from '@/lib/indexnow';
 import type { SchemaType } from '@/lib/blog-db';
 import { sanitizeCmsFaqItems, sanitizeCmsHtml, validateAbsoluteHttpUrl, validateCmsFieldLimits, validateCmsMediaUrl, validatePublishFields, validateScheduledFields } from '@/lib/cms-content';
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       title, slug: rawSlug, excerpt, content, author, author_title,
-      category_id, status, featured_image, featured_image_alt, schema_type,
+      category_id, status, featured_image, featured_image_alt, featured_image_caption, schema_type,
       tags, seo_title, seo_description, seo_keywords, long_tail_keywords,
       og_image, canonical_url, noindex, faq_items,
       date_published, date_modified, scheduled_at, scheduled_timezone,
@@ -147,12 +147,13 @@ export async function POST(request: NextRequest) {
       title: nextTitle,
       excerpt: excerpt?.trim() || null,
       content: sanitizeCmsHtml(content),
-      author: author?.trim() || 'Kruthika.fun Team',
+      author: author?.trim() || 'Editorial Team',
       author_title: author_title?.trim() || null,
       category_id: category_id ? Number(category_id) : null,
       status: finalStatus,
       featured_image: featured_image?.trim() || null,
       featured_image_alt: featured_image_alt?.trim() || null,
+      featured_image_caption: featured_image_caption?.trim() || null,
       schema_type: schemaType,
       tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
       seo_title: effectiveSeoTitle || null,
@@ -193,6 +194,12 @@ export async function PATCH(request: NextRequest) {
   if (!session.isValid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const { ids, action } = await request.json();
+
+    if (action === 'empty_trash') {
+      const deleted = await emptyTrashPosts();
+      return NextResponse.json({ ok: true, deleted });
+    }
+
     if (!Array.isArray(ids) || !ids.length || ids.length > 100 || !ids.every(id => Number.isInteger(Number(id)))) {
       return NextResponse.json({ error: 'Choose between 1 and 100 posts.' }, { status: 400 });
     }

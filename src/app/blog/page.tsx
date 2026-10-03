@@ -180,7 +180,7 @@ export default async function BlogPage(
       ]} />
 
       <main id="main-content" className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4 pt-10 pb-6">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-6">
           <section className="text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent leading-tight">
               AI Girlfriend Insights & Guides
@@ -210,7 +210,7 @@ export default async function BlogPage(
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
           {categories.length > 0 && (
             <nav aria-label="Browse blog categories" className="mb-8 flex flex-wrap items-center justify-center gap-2">
               <span className="text-sm font-semibold text-muted-foreground mr-1">Browse topics:</span>
@@ -227,9 +227,11 @@ export default async function BlogPage(
           )}
           {/* Featured posts (top 3) — page 1 only */}
           {showFeatured && (
-            <div className="grid gap-8">
-              {featured.map((post) => (
-                <PostCard key={post.slug} post={post} featured />
+            <div className="grid sm:grid-cols-2 gap-5">
+              {featured.map((post, i) => (
+                <div key={post.slug} className={i === 0 ? 'sm:col-span-2' : ''}>
+                  <PostCard post={post} featured={i === 0} />
+                </div>
               ))}
             </div>
           )}
@@ -260,7 +262,7 @@ export default async function BlogPage(
 
           {/* Remaining posts (current page) */}
           {pagedRest.length > 0 && (
-            <div className="grid gap-8 mt-8">
+            <div className="grid sm:grid-cols-2 gap-5 mt-8">
               {pagedRest.map((post, index) => (
                 <Fragment key={post.slug}>
                   <PostCard post={post} />
@@ -269,7 +271,7 @@ export default async function BlogPage(
                       the page stays readable while still offering a stronger
                       300×250 opportunity than a second thin banner. */}
                   {index === 5 && (
-                    <div className="my-2 flex justify-center">
+                    <div className="my-2 flex justify-center sm:col-span-2">
                       <div className="w-full max-w-[300px]">
                         <p className="text-[9px] text-muted-foreground/40 text-center mb-1.5 uppercase tracking-widest">Advertisement</p>
                         <BannerAdDisplay
@@ -367,39 +369,35 @@ export default async function BlogPage(
 // ── Shared post card component ──────────────────────────────────────────────
 function PostCard({ post, featured }: { post: UnifiedPost; featured?: boolean }) {
   return (
-    <article className={`bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow ${featured ? 'border-l-4 border-l-purple-500/40' : ''}`}>
+    <article className={`bg-card border border-border rounded-xl overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col ${featured ? 'border-l-4 border-l-purple-500/40' : ''}`}>
       {/* Featured image (DB posts only) */}
       {isRenderableImageSrc(post.featured_image) && (
-        <div className="mb-4 rounded-none overflow-hidden border border-border relative h-48">
+        <div className={`relative overflow-hidden ${featured ? 'h-56 sm:h-64' : 'h-44'}`}>
           <Image
             src={post.featured_image}
             alt={post.title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 640px) 100vw, 50vw"
             className="object-cover"
             loading="lazy"
-            // Shared with the article page / author page so all four call sites
-            // agree with next.config.js remotePatterns. The previous inline
-            // regex here also treated same-origin `/uploads/…` paths as
-            // non-optimizable, so every self-hosted upload skipped the image
-            // optimizer entirely. See src/lib/image-src.ts.
             unoptimized={!isOptimizableImageSrc(post.featured_image)}
           />
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4 flex-wrap">
-        <div className="flex items-center gap-1">
-          <Calendar className="h-4 w-4" />
-          {post.datePublished ? new Date(post.datePublished).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''}
-        </div>
-        <div className="flex items-center gap-1">
-          <User className="h-4 w-4" />
-          {post.author}
-        </div>
-        {post.category && (
+      <div className="p-4 sm:p-5 flex flex-col flex-1">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2.5 flex-wrap">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3.5 w-3.5" />
+            {post.datePublished ? new Date(post.datePublished).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''}
+          </div>
+          <div className="flex items-center gap-1">
+            <User className="h-3.5 w-3.5" />
+            {post.author}
+          </div>
+          {post.category && (
             <div className="flex items-center gap-1">
-            <Tag className="h-4 w-4" />
+              <Tag className="h-3.5 w-3.5" />
               {post.categorySlug ? (
                 <a
                   href={`/blog/category/${post.categorySlug}`}
@@ -410,37 +408,28 @@ function PostCard({ post, featured }: { post: UnifiedPost; featured?: boolean })
               ) : (
                 <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{post.category}</span>
               )}
-          </div>
-        )}
-      </div>
-
-      <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-2 sm:mb-3 text-foreground">
-        <a href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
-          {post.title}
-        </a>
-      </h2>
-
-      {post.description && (
-        <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed line-clamp-3">{post.description}</p>
-      )}
-
-      {post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {post.tags.map((tag, idx) => (
-            <span key={idx} className="text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded font-medium">
-              {tag}
-            </span>
-          ))}
+            </div>
+          )}
         </div>
-      )}
 
-      <a
-        href={`/blog/${post.slug}`}
-        className="inline-flex items-center gap-2 text-blue-700 hover:text-blue-900 transition-colors font-semibold underline"
-        aria-label={`Read full article: ${post.title}`}
-      >
-        Read full article <ArrowRight className="h-4 w-4" />
-      </a>
+        <h2 className={`font-semibold mb-2 text-foreground leading-snug ${featured ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'}`}>
+          <a href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
+            {post.title}
+          </a>
+        </h2>
+
+        {post.description && (
+          <p className="text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2 flex-1">{post.description}</p>
+        )}
+
+        <a
+          href={`/blog/${post.slug}`}
+          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium mt-auto"
+          aria-label={`Read full article: ${post.title}`}
+        >
+          Read article <ArrowRight className="h-3.5 w-3.5" />
+        </a>
+      </div>
     </article>
   );
 }

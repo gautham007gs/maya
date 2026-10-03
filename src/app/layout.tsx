@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   // (developers.google.com/search/docs/crawling-indexing/special-tags).
   // Keyword targeting lives in titles/H1s/content and, for articles,
   // JSON-LD `keywords` (see blog-jsonld.ts) — never in this meta tag.
-  authors: [{ name: 'Kruthika.fun Team' }],
+  authors: [{ name: 'Editorial Team' }],
   creator: 'Kruthika.fun',
   publisher: 'Kruthika.fun',
   applicationName: 'Kruthika AI Girlfriend',

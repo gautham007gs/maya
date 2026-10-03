@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Save, ArrowLeft, Plus, Trash2,
+  Save, ArrowLeft, Plus, Trash2, RotateCcw,
   Bold, Italic, Underline, Heading2, Heading3, List, ListOrdered, Quote,
   Link2, Code, Minus, Type, Image as ImageIcon, Film,
   Keyboard, ExternalLink, CheckCircle2, AlertCircle, Info, Loader2, RefreshCw, Upload,
@@ -18,7 +18,7 @@ import {
   Highlighter, Strikethrough, Table as TableIcon,
   Superscript, Subscript, Eraser,
   AlignLeft, AlignCenter, AlignRight,
-  IndentIncrease, IndentDecrease,
+  IndentIncrease, IndentDecrease, Sparkles,
 } from 'lucide-react';
 import type { SchemaType } from '@/lib/blog-db';
 import MediaLibrary from '@/components/admin/MediaLibrary';
@@ -35,7 +35,7 @@ interface AuthorOption { id: number; name: string; display_name?: string; design
 // Only the three statuses a single-writer newsroom actually needs day to day.
 // "Review" and "Archived" still exist in the DB/list-page filters for legacy
 // content, but the editor no longer surfaces them as a state to pick.
-type PostStatus = 'draft' | 'scheduled' | 'published' | 'review' | 'archived';
+type PostStatus = 'draft' | 'scheduled' | 'published' | 'review' | 'archived' | 'trash';
 
 interface BlogPost {
   id?: number;
@@ -45,6 +45,7 @@ interface BlogPost {
   status: PostStatus;
   featured_image: string;
   featured_image_alt: string;
+  featured_image_caption?: string;
   schema_type: SchemaType;
   tags: string[];
   seo_title: string; seo_description: string; seo_keywords: string;
@@ -71,8 +72,8 @@ interface BlogEditorProps {
 // ── Constants ──────────────────────────────────────────────────────────────
 const EMPTY: BlogPost = {
   slug: '', title: '', excerpt: '', content: '',
-  author: 'Kruthika.fun Team', author_title: '',
-  category_id: null, status: 'draft', featured_image: '', featured_image_alt: '',
+  author: 'Editorial Team', author_title: '',
+  category_id: null, status: 'draft', featured_image: '', featured_image_alt: '', featured_image_caption: '',
   schema_type: 'BlogPosting', tags: [],
   seo_title: '', seo_description: '', seo_keywords: '',
   long_tail_keywords: [], og_image: '',
@@ -111,6 +112,74 @@ const TAG_SUGGESTIONS = [
   'AI Dating', 'Digital Companionship', '2026', 'Best AI Apps India',
   'Relationship Tips', 'Psychology', 'How-To', 'Review', 'Comparison',
 ];
+
+/**
+ * Keyword → tag mapping for smart auto-suggest.
+ * Each key is a TAG_SUGGESTIONS entry; the value is a list of keyword aliases
+ * that, if found in the article text (title + excerpt + stripped content),
+ * trigger that tag as a suggestion. All matching is case-insensitive.
+ */
+const TAG_KEYWORDS: Record<string, string[]> = {
+  'AI Girlfriend':          ['ai girlfriend', 'artificial girlfriend', 'virtual girlfriend', 'ai gf'],
+  'Virtual Companion':      ['virtual companion', 'digital companion', 'ai companion app'],
+  'AI Companion':           ['ai companion', 'ai friend', 'ai buddy'],
+  'Kruthika':               ['kruthika', 'kruthika.fun'],
+  'Free AI Chat':           ['free ai', 'free chat', 'no cost', 'without paying'],
+  'India':                  ['india', 'indian', 'desi', 'bharat', 'hindi'],
+  'Hindi AI':               ['hindi ai', 'hindi chat', 'hindi language'],
+  'Hinglish':               ['hinglish', 'hindi english', 'roman hindi'],
+  'Emotional Support':      ['emotional support', 'emotional health', 'emotional wellbeing', 'feel better', 'lonely'],
+  'Loneliness Relief':      ['loneliness', 'lonely', 'alone', 'isolation', 'solitude'],
+  'AI Technology':          ['ai technology', 'artificial intelligence', 'machine learning', 'neural network', 'deep learning', 'generative ai'],
+  'LLM':                    ['llm', 'large language model', 'gpt', 'gemini', 'claude', 'openai', 'language model'],
+  'Chatbot':                ['chatbot', 'chat bot', 'conversational ai', 'chat ai'],
+  'Virtual Relationship':   ['virtual relationship', 'online relationship', 'digital relationship', 'ai relationship', 'ai love'],
+  'Mental Health':          ['mental health', 'anxiety', 'depression', 'therapy', 'counseling', 'wellbeing', 'self care'],
+  'Privacy & Safety':       ['privacy', 'safety', 'security', 'data protection', 'encryption', 'secure'],
+  'Character.AI Alternative': ['character.ai', 'character ai', 'c.ai'],
+  'Replika Alternative':    ['replika', 'replika app', 'replika alternative'],
+  'AI Dating':              ['ai dating', 'dating app', 'dating ai', 'virtual dating'],
+  'Digital Companionship':  ['digital companionship', 'ai companionship', 'virtual companionship'],
+  '2026':                   ['2026', 'this year', 'latest'],
+  'Best AI Apps India':     ['best ai app', 'top ai app', 'best apps india'],
+  'Relationship Tips':      ['relationship tip', 'dating tip', 'love advice', 'relationship advice'],
+  'Psychology':             ['psychology', 'psychological', 'cognitive', 'behavioral', 'attachment'],
+  'How-To':                 ['how to', 'how-to', 'step by step', 'guide', 'tutorial', 'walkthrough'],
+  'Review':                 ['review', 'reviewed', 'honest review', 'in-depth review', 'comparison review'],
+  'Comparison':             ['comparison', 'compare', 'vs', 'versus', 'better than', 'alternative'],
+};
+
+/** Strip HTML tags to get plain searchable text */
+function stripHtmlForTagSearch(html: string): string {
+  return html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').toLowerCase();
+}
+
+/**
+ * Analyze post title + excerpt + content and return suggested tags from
+ * TAG_SUGGESTIONS that match the article's content but aren't already added.
+ */
+function suggestTagsFromContent(title: string, excerpt: string, content: string, existingTags: string[]): string[] {
+  const text = `${title} ${excerpt} ${stripHtmlForTagSearch(content)}`.toLowerCase();
+  const existing = new Set(existingTags.map(t => t.toLowerCase()));
+  const scored: { tag: string; score: number }[] = [];
+
+  for (const tag of TAG_SUGGESTIONS) {
+    if (existing.has(tag.toLowerCase())) continue;
+    const keywords = TAG_KEYWORDS[tag] || [tag.toLowerCase()];
+    let matchCount = 0;
+    for (const kw of keywords) {
+      // Count occurrences (capped at 5 to avoid bias from repeated terms)
+      const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      const matches = text.match(re);
+      if (matches) matchCount += Math.min(matches.length, 5);
+    }
+    if (matchCount > 0) scored.push({ tag, score: matchCount });
+  }
+
+  // Sort by relevance (match count) descending, return top 6
+  return scored.sort((a, b) => b.score - a.score).slice(0, 6).map(s => s.tag);
+}
+
 
 const TIMEZONES = [
   { value: 'Asia/Kolkata', label: 'India (IST)' },
@@ -460,7 +529,8 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
   // never silently blank out an existing author on load.
   useEffect(() => {
     if (authors.length === 0) return;
-    const match = authors.find(a => (a.display_name || a.name) === post.author);
+    const isEditorialTeam = !post.author || ['editorial team', 'editorial-team', 'kruthika.fun team', 'kruthika team'].includes(post.author.toLowerCase());
+    const match = isEditorialTeam || authors.some(a => (a.display_name || a.name) === post.author);
     setAuthorMode(match ? 'select' : 'custom');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authors.length]);
@@ -643,6 +713,10 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
         if (/text-align\s*:\s*right/.test(style)) inner = `<span data-align="right">${inner}</span>`;
         return inner;
       }
+      // Unwrap semantic article/section/container wrappers so their inner blocks are cleanly retained
+      if (['ARTICLE', 'SECTION', 'MAIN', 'HEADER', 'FOOTER', 'ASIDE', 'NAV'].includes(tag)) {
+        return Array.from(el.childNodes).map(cleanNode).join('');
+      }
       if (!allowed.has(tag)) return Array.from(el.childNodes).map(cleanNode).join('');
 
       const attrs: string[] = [];
@@ -712,8 +786,29 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
 
     const forcePlain = forcePlainPasteRef.current;
     forcePlainPasteRef.current = false;
-    insertHtmlAtCursor(forcePlain || !html ? plainTextToHtml(text) : cleanPastedHtml(html));
-  }, [insertHtmlAtCursor]);
+    const cleaned = forcePlain || !html ? plainTextToHtml(text) : cleanPastedHtml(html);
+    insertHtmlAtCursor(cleaned);
+
+    // Auto-detect and suggest tags from pasted content if post has few/no tags
+    const sampleText = text || stripHtmlForTagSearch(cleaned);
+    setTimeout(() => {
+      setPost(current => {
+        if (current.tags.length < 3) {
+          const detected = suggestTagsFromContent(current.title, current.excerpt, current.content + ' ' + sampleText, current.tags);
+          if (detected.length > 0) {
+            const autoAdded = detected.slice(0, 3);
+            const combined = Array.from(new Set([...current.tags, ...autoAdded]));
+            toast({
+              title: '✨ Auto-detected article tags',
+              description: `Added: ${autoAdded.join(', ')}`,
+            });
+            return { ...current, tags: combined };
+          }
+        }
+        return current;
+      });
+    }, 400);
+  }, [insertHtmlAtCursor, toast]);
 
   const safeEditorHref = (value: string): string | null => {
     const href = value.trim();
@@ -1454,6 +1549,17 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
   };
   const removeTag = (t: string) => set('tags', post.tags.filter(x => x !== t));
 
+  const smartTagSuggestions = useMemo(() => {
+    return suggestTagsFromContent(post.title, post.excerpt, post.content, post.tags);
+  }, [post.title, post.excerpt, post.content, post.tags]);
+
+  const addAllSuggestedTags = () => {
+    if (smartTagSuggestions.length === 0) return;
+    const newTags = Array.from(new Set([...post.tags, ...smartTagSuggestions]));
+    set('tags', newTags);
+    toast({ title: `Added ${smartTagSuggestions.length} tags`, description: smartTagSuggestions.join(', ') });
+  };
+
   // ── Long-tail keywords ───────────────────────────────────────────────────
   const addLtKw = () => {
     const kw = ltKwInput.trim();
@@ -1553,6 +1659,46 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
     } catch { return post.scheduled_at; }
   }, [post.scheduled_at, post.scheduled_timezone]);
 
+  const handleDeletePost = async (permanent: boolean) => {
+    if (!postId) return;
+    if (permanent) {
+      if (!confirm('Are you sure you want to permanently delete this post? This cannot be undone.')) return;
+    } else {
+      if (!confirm('Move this post to the trash? You can restore it later from the Trash tab.')) return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/blog/${postId}${permanent ? '?permanent=true' : ''}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Delete failed');
+      toast({ title: permanent ? 'Post permanently deleted' : 'Post moved to trash' });
+      router.push('/admin/blog');
+    } catch (err: any) {
+      toast({ title: 'Delete failed', description: err.message, variant: 'destructive' });
+      setSaving(false);
+    }
+  };
+
+  const handleRestorePost = async () => {
+    if (!postId) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/blog', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [postId], action: 'restore' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Restore failed');
+      set('status', 'draft');
+      toast({ title: 'Post restored to draft ✓' });
+    } catch (err: any) {
+      toast({ title: 'Restore failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <CmsWorkspaceShell title={post.title || 'Untitled post'} eyebrow={postId ? 'Editing article' : 'New article'} fullBleed>
@@ -1602,6 +1748,26 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
               <Save className="h-3.5 w-3.5 sm:mr-1.5" />
               <span className="hidden sm:inline">{saving ? 'Saving…' : 'Save draft'}</span>
             </Button>
+
+            {postId && (
+              post.status === 'trash' ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleRestorePost} disabled={saving} className="shrink-0 text-slate-700 hover:text-emerald-700 hover:border-emerald-300">
+                    <RotateCcw className="h-3.5 w-3.5 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Restore</span>
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDeletePost(true)} disabled={saving} className="shrink-0">
+                    <Trash2 className="h-3.5 w-3.5 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Delete Forever</span>
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => handleDeletePost(false)} disabled={saving} className="shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200" title="Move to Trash">
+                  <Trash2 className="h-3.5 w-3.5 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Trash</span>
+                </Button>
+              )
+            )}
 
             {post.status === 'scheduled' ? (
               <Button size="sm" onClick={openScheduleModal} className="bg-blue-600 hover:bg-blue-700 text-white shrink-0">
@@ -1795,8 +1961,12 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
                   onFocus={refreshActiveFormats}
                   data-placeholder="Start writing… select text and use the toolbar, or paste from Google Docs."
                   hidden={editorMode !== 'visual'}
-                  className="cms-editor-surface prose prose-slate max-w-none px-5 py-5 min-h-[420px] focus:outline-none
-                    prose-headings:font-bold prose-a:text-violet-600 prose-img:rounded-xl
+                  className="cms-editor-surface prose prose-slate max-w-none px-6 py-6 min-h-[440px] focus:outline-none font-sans
+                    prose-p:font-sans prose-p:text-[16px] sm:prose-p:text-[17.5px] prose-p:leading-[1.75] prose-p:mb-5 prose-p:text-slate-800
+                    prose-headings:font-sans prose-headings:font-bold prose-headings:text-slate-900
+                    prose-a:text-primary prose-a:font-medium prose-img:rounded-xl
+                    prose-ul:my-5 prose-ul:space-y-2 prose-ol:my-5 prose-ol:space-y-2
+                    prose-li:text-[15.5px] sm:prose-li:text-[17px] prose-li:leading-[1.7] prose-li:text-slate-700
                     [&_blockquote[data-type='related-post']]:not-italic [&_blockquote[data-type='related-post']]:border-l-4
                     [&_blockquote[data-type='related-post']]:border-violet-500 [&_blockquote[data-type='related-post']]:bg-violet-50
                     [&_blockquote[data-type='related-post']_span]:block [&_blockquote[data-type='related-post']_span]:text-xs [&_blockquote[data-type='related-post']_span]:text-slate-500
@@ -1900,23 +2070,36 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
                   {authorMode === 'select' ? (
                     <div>
                       <Label className="text-xs text-slate-500">Byline author</Label>
-                      <select
-                        value={authors.find(a => (a.display_name || a.name) === post.author)?.id ?? ''}
-                        onChange={e => {
-                          const chosen = authors.find(a => String(a.id) === e.target.value);
-                          if (chosen) {
-                            set('author', chosen.display_name || chosen.name);
-                            set('author_title', chosen.designation || '');
-                          }
-                        }}
-                        className="mt-0.5 w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
-                      >
-                        <option value="">— Select an author —</option>
-                        {authors.map(a => <option key={a.id} value={a.id}>{a.display_name || a.name}</option>)}
-                      </select>
-                      {authors.length === 0 && (
-                        <p className="text-[11px] text-slate-400 mt-1">No authors set up yet — add one under Authors, or use "One-off / guest" for now.</p>
-                      )}
+                      {(() => {
+                        const isEditorial = !post.author || ['editorial team', 'editorial-team', 'kruthika.fun team'].includes(post.author.toLowerCase());
+                        const matchedAuthor = authors.find(a => (a.display_name || a.name) === post.author);
+                        const selectValue = isEditorial ? 'editorial-team' : (matchedAuthor?.id ? String(matchedAuthor.id) : '');
+
+                        return (
+                          <select
+                            value={selectValue}
+                            onChange={e => {
+                              if (e.target.value === 'editorial-team' || !e.target.value) {
+                                set('author', 'Editorial Team');
+                                set('author_title', 'AI Companionship & Relationship Psychology Specialists');
+                                return;
+                              }
+                              const chosen = authors.find(a => String(a.id) === e.target.value);
+                              if (chosen) {
+                                set('author', chosen.display_name || chosen.name);
+                                set('author_title', chosen.designation || '');
+                              }
+                            }}
+                            className="mt-0.5 w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 font-medium text-slate-700"
+                          >
+                            <option value="editorial-team">Editorial Team (Recommended / Default)</option>
+                            {authors
+                              .filter(a => (a.display_name || a.name).toLowerCase() !== 'editorial team')
+                              .map(a => <option key={a.id} value={a.id}>{a.display_name || a.name}</option>)}
+                          </select>
+                        );
+                      })()}
+                      <p className="text-[11px] text-slate-400 mt-1">Select an author profile or keep the expert Editorial Team for strong E-E-A-T search signals.</p>
                     </div>
                   ) : (
                     <>
@@ -1949,6 +2132,11 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
                     <Input placeholder="Describe the image for screen readers" value={post.featured_image_alt} onChange={e => set('featured_image_alt', e.target.value)} className="mt-0.5 text-sm" maxLength={125} />
                     <CharCounter count={post.featured_image_alt.length} optimal={100} max={125} />
                     <p className="text-[11px] text-slate-400 mt-1">Screen readers and Google Images both truncate around 125 characters — keep it short and descriptive, not keyword-stuffed.</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-slate-500">Image Source / Credit Caption <span className="text-slate-400 font-normal">(optional)</span></Label>
+                    <Input placeholder="e.g. Photo by John Doe on Unsplash / Kruthika AI" value={post.featured_image_caption || ''} onChange={e => set('featured_image_caption', e.target.value)} className="mt-0.5 text-sm" />
+                    <p className="text-[11px] text-slate-400 mt-1">Displays as a small italic credit line directly beneath the hero image on the blog article.</p>
                   </div>
                   {post.featured_image && (
                     <img src={post.featured_image} alt="Preview" className="w-full h-32 object-cover rounded-lg border border-slate-200" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -1983,10 +2171,38 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
                         ))}
                       </div>
                     )}
-                    <div className="mt-2">
-                      <p className="text-[11px] text-slate-400 mb-1.5">Quick-add:</p>
+                    {smartTagSuggestions.length > 0 && (
+                      <div className="mt-3 p-2.5 bg-purple-50/70 border border-purple-100 rounded-lg">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <p className="text-[11px] font-semibold text-purple-800 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-purple-600" /> Auto-detected for this article:
+                          </p>
+                          <button
+                            type="button"
+                            onClick={addAllSuggestedTags}
+                            className="text-[10px] font-semibold text-purple-700 hover:text-purple-900 underline"
+                          >
+                            + Add all ({smartTagSuggestions.length})
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {smartTagSuggestions.map(t => (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => addTag(t)}
+                              className="text-[11px] bg-white border border-purple-200 shadow-sm rounded-full px-2 py-0.5 text-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all font-medium"
+                            >
+                              +{t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-2.5">
+                      <p className="text-[11px] text-slate-400 mb-1">More suggestions:</p>
                       <div className="flex flex-wrap gap-1">
-                        {TAG_SUGGESTIONS.filter(t => !post.tags.includes(t)).slice(0, 8).map(t => (
+                        {TAG_SUGGESTIONS.filter(t => !post.tags.includes(t) && !smartTagSuggestions.includes(t)).slice(0, 8).map(t => (
                           <button key={t} type="button" onClick={() => addTag(t)}
                             className="text-[11px] border border-slate-200 rounded-full px-2 py-0.5 text-slate-500 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 transition-colors">+{t}</button>
                         ))}
@@ -2421,9 +2637,19 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
           open={mediaLibraryOpen}
           onClose={() => setMediaLibraryOpen(false)}
           onSelect={(asset: any) => {
-            if (mediaLibraryTarget === 'featured') set('featured_image', asset.public_url);
-            else if (mediaLibraryTarget === 'og') set('og_image', asset.public_url);
-            else setImageToolUrl(asset.public_url);
+            if (mediaLibraryTarget === 'featured') {
+              set('featured_image', asset.public_url);
+              if (asset.caption && !post.featured_image_caption) {
+                set('featured_image_caption', asset.caption);
+              }
+              if (asset.alt_text && !post.featured_image_alt) {
+                set('featured_image_alt', asset.alt_text);
+              }
+            } else if (mediaLibraryTarget === 'og') {
+              set('og_image', asset.public_url);
+            } else {
+              setImageToolUrl(asset.public_url);
+            }
             setMediaLibraryOpen(false);
           }}
         />
