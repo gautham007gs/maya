@@ -641,7 +641,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({ message, aiAvatarUrl
       }
     }
 
-    return message.text && <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap">{message.text}</p>;
+    return message.text && <span className="text-[14.2px] leading-[19px] whitespace-pre-wrap">{message.text}</span>;
   };
 
   // WhatsApp-style View Once Image Component with Dialog - Similar to DP zoom
@@ -928,25 +928,27 @@ const MessageBubble: React.FC<MessageBubbleProps> = memo(({ message, aiAvatarUrl
             Your browser does not support the audio element.
           </audio>
         )}
-        <div className="relative">
-          <div className={cn("pb-[18px]", isUser && "pr-[65px]")}>{renderMessageContent()}</div>
-          {!isAd && (
-            <div className="absolute bottom-[2px] right-[6px] flex items-center gap-[3px] whitespace-nowrap">
-              <span className={cn('text-[11px] leading-none',
-                isUser ? 'text-gray-600' : 'text-gray-500'
-              )}>
-                {formatTime(timestamp)}
+        <div className="relative leading-[19px]">
+          <div className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words">
+            {renderMessageContent()}
+            {!isAd && (
+              <span className="inline-flex items-center gap-[3px] float-right mt-1 ml-2.5 translate-y-[2px] select-none whitespace-nowrap">
+                <span className={cn('text-[11px] leading-none',
+                  isUser ? 'text-gray-600' : 'text-gray-500'
+                )}>
+                  {formatTime(timestamp)}
+                </span>
+                {renderTicks(message.status)}
+                {message.isLiked && (
+                  <Heart className="h-3 w-3 text-red-500 ml-0.5 fill-current" />
+                )}
+                {/* Display reaction if present */}
+                {message.reaction && (
+                  <span className="ml-0.5 text-base">{message.reaction}</span>
+                )}
               </span>
-              {renderTicks(message.status)}
-              {message.isLiked && (
-                <Heart className="h-3 w-3 text-red-500 ml-0.5 fill-current" />
-              )}
-              {/* Display reaction if present */}
-              {message.reaction && (
-                <span className="ml-0.5 text-base">{message.reaction}</span>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
         {isAd && (
           <div className="flex items-center justify-center mt-2">

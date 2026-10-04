@@ -30,7 +30,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       // Social-sharing overrides fall back to SEO fields (editor exposes both)
       const ogTitle = dbPost.og_title || title;
       const ogDescription = dbPost.og_description || description;
-      const ogImage = dbPost.og_image || dbPost.featured_image || `${baseUrl}/og-image.jpg`;
+      const rawOg = dbPost.og_image || dbPost.featured_image;
+      const ogImage = rawOg
+        ? (rawOg.startsWith('http://') || rawOg.startsWith('https://') ? rawOg : `${baseUrl}${rawOg.startsWith('/') ? '' : '/'}${rawOg}`)
+        : `${baseUrl}/opengraph-image`;
       // Canonical must use the post's REAL slug, not the requested one — a hit
       // on /blog/My%20Post (or an uppercase variant matched by the LOWER(?)
       // clause in getPublishedPostBySlug) otherwise canonicalised to itself

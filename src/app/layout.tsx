@@ -87,30 +87,20 @@ export const metadata: Metadata = {
     siteName: 'Kruthika AI Girlfriend',
     images: [
       {
-        url: `${getBaseUrl()}/og-image.webp`,
+        url: `${getBaseUrl()}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: 'Kruthika AI Girlfriend - Free Virtual Companion for Emotional Support',
       },
-      {
-        url: `${getBaseUrl()}/og-image.jpg`,
-        width: 1200,
-        height: 630,
-        alt: 'Kruthika AI Girlfriend - JPEG fallback',
-      },
     ],
     locale: 'en_US',
     type: 'website',
-    // countryName removed — declaring the homepage exclusively "United States"
-    // contradicted the site's own x-default = "India + global catch-all"
-    // hreflang intent (see /us /uk /ca /au /in geo pages, hreflang.ts).
-    // Country-specific OG is still correctly set per-geo-page.
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Best Free AI Girlfriend 2026 | Kruthika',
     description: 'Free AI girlfriend, no account needed. Hindi & English, 24/7 emotional support. Join 1M+ users.',
-    images: [`${getBaseUrl()}/og-image.webp`, `${getBaseUrl()}/og-image.jpg`],
+    images: [`${getBaseUrl()}/opengraph-image`],
     creator: '@kruthikafun',
     site: '@kruthikafun',
   },

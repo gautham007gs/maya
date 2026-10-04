@@ -18,7 +18,7 @@ import {
   Highlighter, Strikethrough, Table as TableIcon,
   Superscript, Subscript, Eraser,
   AlignLeft, AlignCenter, AlignRight,
-  IndentIncrease, IndentDecrease, Sparkles,
+  IndentIncrease, IndentDecrease, Sparkles, MoveVertical,
 } from 'lucide-react';
 import type { SchemaType } from '@/lib/blog-db';
 import MediaLibrary from '@/components/admin/MediaLibrary';
@@ -227,7 +227,7 @@ function normalizeEditorMarkup(root: Element | DocumentFragment): void {
     if (wrappers.length === 0) {
       // Browser hiliteColor uses a transparent span when a highlight is
       // toggled off. It is formatting-neutral and should not be persisted.
-      if (!span.getAttribute('data-align')) {
+      if (!span.getAttribute('data-align') && !span.getAttribute('data-line-height')) {
         while (span.firstChild) span.parentNode?.insertBefore(span.firstChild, span);
         span.remove();
       }
@@ -632,13 +632,20 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
 
   // ── Visual (contentEditable) surface helpers ─────────────────────────────
   // This is the fix for "select a word, click H2, and the word itself
-  // should become a heading" — formatBlock (and the other execCommand
-  // calls) act on the *current selection*, they don't insert literal tags.
+  // Live typing/erasing sync without mutating DOM.
+  // CRITICAL BUGFIX: Calling normalizeEditorMarkup during live typing (onInput)
+  // mutates/replaces active text nodes, which causes the browser selection to collapse
+  // and jump back to the previous sentence or paragraph whenever erasing letters!
   const syncFromVisual = useCallback(() => {
     const editor = visualEditorRef.current;
     if (!editor) return;
-    // Normalize after every browser edit. This keeps legacy tags and
-    // accidental nested wrappers from becoming part of the saved document.
+    set('content', editor.innerHTML);
+  }, [set]);
+
+  // Full markup normalization: executed onBlur, paste, or toolbar actions
+  const normalizeAndSyncVisual = useCallback(() => {
+    const editor = visualEditorRef.current;
+    if (!editor) return;
     normalizeEditorMarkup(editor);
     set('content', editor.innerHTML);
   }, [set]);
@@ -740,8 +747,13 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
       } else if (['P', 'H2', 'H3', 'H4', 'H5', 'H6', 'PRE', 'LI', 'BLOCKQUOTE'].includes(tag)) {
         const align = el.getAttribute('data-align');
         const indent = el.getAttribute('data-indent');
+        const lineHeight = el.getAttribute('data-line-height') || el.style?.lineHeight;
         if (align === 'center' || align === 'right') attrs.push(`data-align="${align}"`);
         if (indent && /^[1-4]$/.test(indent)) attrs.push(`data-indent="${indent}"`);
+        if (lineHeight && /^([0-9.]+|tight|snug|normal|relaxed|loose)$/i.test(lineHeight)) {
+          attrs.push(`data-line-height="${lineHeight}"`);
+          attrs.push(`style="line-height: ${lineHeight};"`);
+        }
         if (tag === 'BLOCKQUOTE' && el.getAttribute('data-type') === 'related-post') {
           attrs.push('data-type="related-post"');
         }
@@ -848,10 +860,12 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
     bold: boolean; italic: boolean; underline: boolean; strike: boolean;
     highlight: boolean; sub: boolean; sup: boolean; unordered: boolean;
     ordered: boolean; table: boolean; align: 'left' | 'center' | 'right'; block: string;
+    lineHeight: string;
   }>({
     bold: false, italic: false, underline: false, strike: false,
     highlight: false, sub: false, sup: false, unordered: false,
     ordered: false, table: false, align: 'left', block: '',
+    lineHeight: '',
   });
 
   const selectionElement = (sel: Selection): HTMLElement | null => {
@@ -870,6 +884,8 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
       const anchor = selectionElement(sel);
       const closest = (tags: string[]) => Boolean(anchor?.closest(tags.join(',')));
       const block = anchor?.closest('h2,h3,h4,h5,h6,p,blockquote,pre,li')?.tagName || '';
+      const lhElem = anchor?.closest('[data-line-height]') as HTMLElement | null;
+      const currentLh = lhElem?.getAttribute('data-line-height') || (anchor?.style.lineHeight || '');
       setActiveFormats({
         bold: closest(['strong', 'b']) || document.queryCommandState('bold'),
         italic: closest(['em', 'i']) || document.queryCommandState('italic'),
@@ -884,6 +900,7 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
         align: anchor?.closest('[data-align="center"]') ? 'center'
           : anchor?.closest('[data-align="right"]') ? 'right' : 'left',
         block,
+        lineHeight: currentLh,
       });
     } catch { /* queryCommandState unsupported — buttons just won't highlight */ }
   }, []);
@@ -1004,6 +1021,82 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
     syncFromVisual();
     refreshActiveFormats();
   }, [editorMode, block, syncFromVisual, refreshActiveFormats]);
+
+  const [lineHeightToolOpen, setLineHeightToolOpen] = useState(false);
+
+  const applyLineHeight = useCallback((lh: string) => {
+    if (editorMode !== 'visual') {
+      block(`<p data-line-height="${lh}" style="line-height: ${lh};"></p>`);
+      return;
+    }
+    const editor = visualEditorRef.current;
+    const sel = window.getSelection();
+    if (!editor || !sel || sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
+      toast({ title: 'Select text first', description: 'Highlight text or place cursor in a paragraph to adjust line height.' });
+      return;
+    }
+
+    const range = sel.getRangeAt(0);
+    const anchor = sel.anchorNode?.nodeType === Node.ELEMENT_NODE
+      ? sel.anchorNode as HTMLElement
+      : sel.anchorNode?.parentElement;
+
+    const blockElem = anchor?.closest('p,h2,h3,h4,h5,h6,blockquote,pre,li') as HTMLElement | null;
+
+    if (blockElem && editor.contains(blockElem)) {
+      if (lh === '1.6' || lh === 'default') {
+        blockElem.removeAttribute('data-line-height');
+        blockElem.style.removeProperty('line-height');
+      } else {
+        blockElem.setAttribute('data-line-height', lh);
+        blockElem.style.lineHeight = lh;
+      }
+    } else if (!sel.isCollapsed) {
+      // Wrap inline selection in a span
+      const span = document.createElement('span');
+      span.setAttribute('data-line-height', lh);
+      span.style.lineHeight = lh;
+      try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+      } catch {
+        /* fallback */
+      }
+    }
+
+    syncFromVisual();
+    refreshActiveFormats();
+    setLineHeightToolOpen(false);
+  }, [editorMode, block, syncFromVisual, refreshActiveFormats, toast]);
+
+  const stepLineHeight = useCallback((direction: 'up' | 'down') => {
+    const editor = visualEditorRef.current;
+    const sel = window.getSelection();
+    if (!editor || !sel || sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
+      toast({ title: 'Select text first', description: 'Highlight text or place cursor in a paragraph to adjust line height.' });
+      return;
+    }
+
+    const anchor = sel.anchorNode?.nodeType === Node.ELEMENT_NODE
+      ? sel.anchorNode as HTMLElement
+      : sel.anchorNode?.parentElement;
+    const blockElem = anchor?.closest('p,h2,h3,h4,h5,h6,blockquote,pre,li,span[data-line-height]') as HTMLElement | null;
+
+    const currentStr = blockElem?.getAttribute('data-line-height') || blockElem?.style.lineHeight || '1.6';
+    let current = parseFloat(currentStr);
+    if (isNaN(current)) current = 1.6;
+
+    let next = direction === 'up' ? current + 0.2 : current - 0.2;
+    next = Math.round(next * 10) / 10;
+    if (next < 1.0) next = 1.0;
+    if (next > 2.6) next = 2.6;
+
+    applyLineHeight(String(next));
+  }, [applyLineHeight, toast]);
 
   const applyHr = useCallback(() => {
     if (editorMode !== 'visual') { block('<hr />'); return; }
@@ -1156,6 +1249,17 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [tablePickerOpen]);
+
+  useEffect(() => {
+    if (!lineHeightToolOpen) return;
+    const close = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[data-line-height-picker]')) return;
+      setLineHeightToolOpen(false);
+    };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [lineHeightToolOpen]);
 
   // Remember the current selection before opening a modal (link / image /
   // video pickers steal focus from the editor, which would otherwise lose
@@ -1933,6 +2037,78 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
                    <TB title="Align center" active={activeFormats.align === 'center'} onClick={() => applyAlignment('center')}><AlignCenter className="h-3.5 w-3.5" /></TB>
                    <TB title="Align right" active={activeFormats.align === 'right'} onClick={() => applyAlignment('right')}><AlignRight className="h-3.5 w-3.5" /></TB>
                    <span className="w-px h-5 bg-slate-200 mx-1" />
+
+                   {/* Line height control */}
+                   <div className="relative" data-line-height-picker>
+                     <button
+                       type="button"
+                       title={`Line height (${activeFormats.lineHeight || 'normal'})`}
+                       onClick={() => setLineHeightToolOpen(v => !v)}
+                       className={`h-7 px-2 flex items-center gap-1 rounded text-xs transition-colors ${
+                         lineHeightToolOpen || (activeFormats.lineHeight && activeFormats.lineHeight !== 'normal' && activeFormats.lineHeight !== '1.6')
+                           ? 'bg-violet-100 text-violet-700 font-semibold'
+                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                       }`}
+                     >
+                       <MoveVertical className="h-3.5 w-3.5" />
+                       <span className="text-[11px] font-mono">{activeFormats.lineHeight || '1.6'}</span>
+                       <ChevronDown className="h-3 w-3 text-slate-400" />
+                     </button>
+
+                     {lineHeightToolOpen && (
+                       <div
+                         className="absolute left-0 top-full mt-1 w-44 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 text-xs"
+                         onMouseDown={e => e.stopPropagation()}
+                       >
+                         <div className="flex items-center justify-between px-1.5 py-1 mb-1 border-b border-slate-100 font-medium text-slate-600 text-[11px]">
+                           <span>Line Spacing</span>
+                           <div className="flex items-center gap-1">
+                             <button
+                               type="button"
+                               title="Decrease line height (-0.2)"
+                               onClick={() => stepLineHeight('down')}
+                               className="h-5 w-5 rounded hover:bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs"
+                             >
+                               -
+                             </button>
+                             <button
+                               type="button"
+                               title="Increase line height (+0.2)"
+                               onClick={() => stepLineHeight('up')}
+                               className="h-5 w-5 rounded hover:bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs"
+                             >
+                               +
+                             </button>
+                           </div>
+                         </div>
+                         {[
+                           { label: 'Tight (1.2)', value: '1.2' },
+                           { label: 'Compact (1.4)', value: '1.4' },
+                           { label: 'Normal (1.6)', value: '1.6' },
+                           { label: 'Relaxed (1.8)', value: '1.8' },
+                           { label: 'Loose (2.0)', value: '2.0' },
+                           { label: 'Double (2.4)', value: '2.4' },
+                         ].map(opt => (
+                           <button
+                             key={opt.value}
+                             type="button"
+                             onClick={() => applyLineHeight(opt.value)}
+                             className={`w-full text-left px-2 py-1.5 rounded flex items-center justify-between hover:bg-slate-100 transition-colors ${
+                               (activeFormats.lineHeight === opt.value || (!activeFormats.lineHeight && opt.value === '1.6'))
+                                 ? 'text-violet-700 font-semibold bg-violet-50'
+                                 : 'text-slate-700'
+                             }`}
+                           >
+                             <span>{opt.label}</span>
+                             {(activeFormats.lineHeight === opt.value || (!activeFormats.lineHeight && opt.value === '1.6')) && (
+                               <span className="text-[10px] text-violet-600 font-bold">✓</span>
+                             )}
+                           </button>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                   <span className="w-px h-5 bg-slate-200 mx-1" />
                   <TB title="Insert / internal link" shortcut="Ctrl+K" onClick={openLinkTool}><Link2 className="h-3.5 w-3.5" /></TB>
                   <TB title="Insert image" onClick={openImageTool}><ImageIcon className="h-3.5 w-3.5" /></TB>
                   <TB title="Embed video (YouTube / Vimeo)" onClick={openVideoTool}><Film className="h-3.5 w-3.5" /></TB>
@@ -1953,7 +2129,7 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
                   contentEditable
                   suppressContentEditableWarning
                   onInput={syncFromVisual}
-                  onBlur={syncFromVisual}
+                  onBlur={normalizeAndSyncVisual}
                   onPaste={handleVisualPaste}
                   onKeyDown={handleEditorKeyDown}
                   onKeyUp={refreshActiveFormats}

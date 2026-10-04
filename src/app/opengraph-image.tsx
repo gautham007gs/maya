@@ -4,7 +4,8 @@ export const alt = 'Kruthika AI Girlfriend — Free, No Sign Up';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default function Image() {
+export default async function Image() {
+  // Branded high-contrast social banner
   return new ImageResponse(
     (
       <div

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { trackChatMessage } from '@/lib/user-tagging';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSendMessage: (text: string, imageUri?: string) => void;
@@ -218,6 +219,55 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
+  const handleEmojiSelect = useCallback((emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setInputValue((prev) => prev + emoji);
+      return;
+    }
+    const start = textarea.selectionStart ?? inputValue.length;
+    const end = textarea.selectionEnd ?? inputValue.length;
+    const nextVal = inputValue.substring(0, start) + emoji + inputValue.substring(end);
+    setInputValue(nextVal);
+
+    requestAnimationFrame(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+      textarea.focus({ preventScroll: true });
+      resizeTextarea(textarea);
+    });
+  }, [inputValue, resizeTextarea]);
+
+  const handleEmojiBackspace = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea || !inputValue) return;
+    const start = textarea.selectionStart ?? inputValue.length;
+    const end = textarea.selectionEnd ?? inputValue.length;
+
+    if (start !== end) {
+      const nextVal = inputValue.substring(0, start) + inputValue.substring(end);
+      setInputValue(nextVal);
+      requestAnimationFrame(() => {
+        textarea.selectionStart = textarea.selectionEnd = start;
+        textarea.focus({ preventScroll: true });
+        resizeTextarea(textarea);
+      });
+      return;
+    }
+
+    if (start === 0) return;
+    // Remove one unicode code point/grapheme before cursor
+    const before = Array.from(inputValue.substring(0, start));
+    before.pop();
+    const newBefore = before.join('');
+    const nextVal = newBefore + inputValue.substring(end);
+    setInputValue(nextVal);
+    requestAnimationFrame(() => {
+      textarea.selectionStart = textarea.selectionEnd = newBefore.length;
+      textarea.focus({ preventScroll: true });
+      resizeTextarea(textarea);
+    });
+  }, [inputValue, resizeTextarea]);
+
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -225,84 +275,251 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, []);
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex items-end p-2 bg-[#F0F0F0] dark:bg-gray-900 gap-2"
-    >
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-        className="text-gray-600 hover:text-gray-700 self-end shrink-0 h-10 w-10 rounded-full"
-          aria-label={showEmojiPicker ? t.closeEmojiPicker : t.openEmojiPicker}
-      >
-        <Smile className="h-6 w-6" />
-      </Button>
-
-      <div className="flex flex-1 items-center bg-white dark:bg-gray-800 rounded-[24px] px-3 py-1.5 gap-2">
-        <Textarea
-          ref={textareaRef}
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder={t.messagePlaceholder}
-          className="flex-1 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent custom-scrollbar py-2 text-[15px] leading-tight max-h-20 min-h-[2rem] placeholder:text-gray-500"
-          style={{ transition: 'height 60ms ease', height: `${TEXTAREA_MIN_HEIGHT}px` }}
-          rows={1}
+    <div className="flex flex-col bg-[#F0F0F0] dark:bg-gray-900 border-t border-[#e9edef] dark:border-gray-800">
+      {/* WhatsApp-style Emoji Picker Panel */}
+      {showEmojiPicker && (
+        <EmojiPickerPanel
+          onSelectEmoji={handleEmojiSelect}
+          onBackspace={handleEmojiBackspace}
+          onClose={() => setShowEmojiPicker(false)}
         />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="hidden"
-          onChange={handleImageChange}
-          id="file-upload-input"
-          aria-label={t.uploadImage}
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          type="button"
-          className="text-gray-600 hover:text-gray-700 self-end shrink-0 h-9 w-9 p-0"
-          onClick={() => fileInputRef.current?.click()}
-          aria-label={t.uploadImage}
-        >
-          <Paperclip className="h-5 w-5" />
-        </Button>
-      </div>
-
-      {inputValue.trim() || selectedImage ? (
-        <Button
-          type="button"
-          size="icon"
-          className="bg-[#25d366] hover:bg-[#1faa55] self-end shrink-0 h-12 w-12 rounded-full"
-          aria-label={isLoading ? t.sendingMessage : t.sendMessage}
-          // type="button" + explicit onClick so that onBeforeSend (send-lock) is
-          // always called on every browser, including Android where
-          // preventDefault on pointerdown can suppress the form submit event.
-          onClick={() => handleSubmit()}
-          // Prevent focus from moving to the button — keeps the textarea focused
-          // so the keyboard never dismisses on tap.
-          onPointerDown={(e) => e.preventDefault()}
-        >
-          {isLoading
-            ? <Loader2 className="h-5 w-5 animate-spin text-white" />
-            : <Send className="h-5 w-5 text-white" />}
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          size="icon"
-          type="button"
-          className="bg-[#25d366] hover:bg-[#1faa55] text-white self-end shrink-0 h-12 w-12 rounded-full"
-          aria-label={t.openMicrophone}
-        >
-          <Mic className="h-5 w-5" />
-        </Button>
       )}
-    </form>
+
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-end p-2 gap-2"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowEmojiPicker((prev) => !prev)}
+          className={cn(
+            "self-end shrink-0 h-10 w-10 rounded-full transition-colors",
+            showEmojiPicker
+              ? "text-[#25d366] bg-emerald-50 dark:bg-emerald-950/40"
+              : "text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+          )}
+          aria-label={showEmojiPicker ? t.closeEmojiPicker : t.openEmojiPicker}
+        >
+          <Smile className="h-6 w-6" />
+        </Button>
+
+        <div className="flex flex-1 items-center bg-white dark:bg-gray-800 rounded-[24px] px-3 py-1.5 gap-2 shadow-sm border border-transparent focus-within:border-gray-200 dark:focus-within:border-gray-700">
+          <Textarea
+            ref={textareaRef}
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder={t.messagePlaceholder}
+            className="flex-1 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent custom-scrollbar py-2 text-[15px] leading-tight max-h-20 min-h-[2rem] placeholder:text-gray-500 text-gray-900 dark:text-gray-100"
+            style={{ transition: 'height 60ms ease', height: `${TEXTAREA_MIN_HEIGHT}px` }}
+            rows={1}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleImageChange}
+            id="file-upload-input"
+            aria-label={t.uploadImage}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 self-end shrink-0 h-9 w-9 p-0"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label={t.uploadImage}
+          >
+            <Paperclip className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {inputValue.trim() || selectedImage ? (
+          <Button
+            type="button"
+            size="icon"
+            className="bg-[#25d366] hover:bg-[#1faa55] self-end shrink-0 h-12 w-12 rounded-full shadow-md transition-all active:scale-95"
+            aria-label={isLoading ? t.sendingMessage : t.sendMessage}
+            onClick={() => handleSubmit()}
+            onPointerDown={(e) => e.preventDefault()}
+          >
+            {isLoading
+              ? <Loader2 className="h-5 w-5 animate-spin text-white" />
+              : <Send className="h-5 w-5 text-white" />}
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            className="bg-[#25d366] hover:bg-[#1faa55] text-white self-end shrink-0 h-12 w-12 rounded-full shadow-md transition-all active:scale-95"
+            aria-label={t.openMicrophone}
+          >
+            <Mic className="h-5 w-5" />
+          </Button>
+        )}
+      </form>
+    </div>
   );
 };
+
+// ── WhatsApp-style Emoji Picker Component ─────────────────────────────────────
+const EMOJI_CATEGORIES = [
+  {
+    id: 'smileys',
+    name: 'Smileys',
+    icon: '😊',
+    emojis: [
+      '😀', '😃', '😄', '😁', '😆', '🥹', '😅', '😂', '🤣', '🥲', '☺️', '😊',
+      '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋',
+      '😛', '😜', '🤪', '😝', '🤑', '🤗', '🫣', '🤭', '🥱', '🤫', '🫡', '🤤',
+      '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯',
+      '🤠', '🥳', '🥸', '😎', '🤓', '🧐', '😕', '🫤', '😟', '🙁', '😮', '😯',
+      '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖',
+      '😣', '😞', '😓', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀',
+      '💩', '🤡', '👻', '👽', '🤖',
+    ],
+  },
+  {
+    id: 'hearts',
+    name: 'Love & Hearts',
+    icon: '❤️',
+    emojis: [
+      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕',
+      '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💋', '💌', '💐', '🌹', '🥀',
+      '🌺', '🌸', '🌼', '🌻', '⭐️', '🌟', '✨', '💫', '🔥', '⚡️', '🌈', '☀️',
+    ],
+  },
+  {
+    id: 'gestures',
+    name: 'Hands & People',
+    icon: '👍',
+    emojis: [
+      '👍', '👎', '👏', '🙌', '🫶', '👐', '🤲', '🤝', '🙏', '✊', '👊', '🤛',
+      '🤜', '🤞', '✌️', '🫰', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇',
+      '☝️', '🫵', '✍️', '👋', '🤚', '🖐️', '✋', '🖖', '💅', '🤳', '💃', '🕺',
+      '👫', '👩‍❤️‍👨', '💏', '🫂', '🙇', '💁', '🙋',
+    ],
+  },
+  {
+    id: 'animals',
+    name: 'Animals & Nature',
+    icon: '🐱',
+    emojis: [
+      '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮',
+      '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐣', '🦆',
+      '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🪱', '🐛', '🦋', '🐌',
+      '🐞', '🐜', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '🍀', '🍁', '🍂',
+    ],
+  },
+  {
+    id: 'food',
+    name: 'Food & Drinks',
+    icon: '🍕',
+    emojis: [
+      '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒',
+      '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🥑', '🍔', '🍟', '🍕', '🌭', '🥪',
+      '🌮', '🌯', '🍿', '🥞', '🧇', '🧀', '🍗', '🍖', '🍝', '🍜', '🍲', '🍣',
+      '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🍫', '🍬', '🍭', '☕️',
+      '🍵', '🧃', '🥤', '🧋', '🍺', '🍻', '🥂', '🍷',
+    ],
+  },
+  {
+    id: 'activities',
+    name: 'Activities & Fun',
+    icon: '🎉',
+    emojis: [
+      '⚽️', '🏀', '🏈', '⚾️', '🥎', '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🏒',
+      '🏏', '🥅', '⛳️', '🏹', '🎣', '🥊', '🥋', '🏆', '🥇', '🥈', '🥉', '🎖️',
+      '🎫', '🎟️', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷',
+      '🎺', '🎸', '📱', '💻', '📷', '📸', '💎', '💡', '⏰', '🎁', '🎈', '🎊', '🎉',
+    ],
+  },
+];
+
+function EmojiPickerPanel({
+  onSelectEmoji,
+  onBackspace,
+  onClose,
+}: {
+  onSelectEmoji: (emoji: string) => void;
+  onBackspace: () => void;
+  onClose: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState(0);
+
+  return (
+    <div
+      className="flex flex-col h-64 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 select-none shadow-inner"
+      style={{ WebkitUserSelect: 'none' }}
+    >
+      {/* Category Tabs */}
+      <div className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5">
+          {EMOJI_CATEGORIES.map((cat, idx) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setActiveTab(idx)}
+              className={cn(
+                "px-2.5 py-1 text-lg rounded-xl transition-all",
+                activeTab === idx
+                  ? "bg-white dark:bg-gray-700 shadow-sm scale-110"
+                  : "opacity-60 hover:opacity-100 hover:bg-gray-200/50 dark:hover:bg-gray-800"
+              )}
+              title={cat.name}
+            >
+              {cat.icon}
+            </button>
+          ))}
+        </div>
+
+        {/* Backspace & Close buttons */}
+        <div className="flex items-center gap-1 shrink-0 ml-2">
+          <button
+            type="button"
+            onClick={onBackspace}
+            className="p-1.5 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-semibold transition-colors"
+            title="Delete previous"
+            aria-label="Delete"
+          >
+            ⌫
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-xs font-semibold transition-colors"
+            title="Close"
+            aria-label="Close emoji picker"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* Emoji Grid */}
+      <div className="flex-1 overflow-y-auto p-2.5 custom-scrollbar">
+        <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
+          {EMOJI_CATEGORIES[activeTab].name}
+        </div>
+        <div className="grid grid-cols-8 sm:grid-cols-10 gap-1 sm:gap-2">
+          {EMOJI_CATEGORIES[activeTab].emojis.map((emoji, index) => (
+            <button
+              key={`${emoji}-${index}`}
+              type="button"
+              onClick={() => onSelectEmoji(emoji)}
+              className="h-10 w-10 flex items-center justify-center text-2xl rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform active:scale-125 focus:outline-none"
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default ChatInput;

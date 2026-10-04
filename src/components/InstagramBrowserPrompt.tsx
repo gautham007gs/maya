@@ -2,24 +2,23 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAdSettings } from '@/contexts/AdSettingsContext';
-import { isInstagramBrowser, isInAppBrowser, getIABPlatform, getAndroidIntentUrl } from '@/lib/instagram-browser';
+import {
+  isInstagramBrowser,
+  isInAppBrowser,
+  getIABPlatform,
+  getAndroidIntentUrl,
+  getGenericAndroidIntentUrl,
+} from '@/lib/instagram-browser';
 
 export default function InstagramBrowserPrompt() {
   const { adSettings, isLoadingAdSettings } = useAdSettings();
-  const [visible, setVisible] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [active, setActive] = useState(false);
   const [copied, setCopied] = useState(false);
   const [os, setOS] = useState<'ios' | 'android' | 'other'>('other');
-  const attemptedPayloadRef = useRef(false);
+  const payloadFiredRef = useRef(false);
 
-  // Determine whether detection is enabled (defaults to true if settings not yet loaded)
+  // Enabled unless admin explicitly sets it to false
   const isDetectionEnabled = adSettings?.instagramDetectionEnabled ?? true;
-
-  const handleDismiss = useCallback(() => {
-    try { sessionStorage.setItem('insta_prompt_dismissed', '1'); } catch { /* ignore */ }
-    setDismissed(true);
-    setVisible(false);
-  }, []);
 
   const handleCopyLink = useCallback(async () => {
     try {
@@ -36,27 +35,45 @@ export default function InstagramBrowserPrompt() {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch {
-      // Fallback
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   }, []);
 
-  const handleOpenExternal = useCallback(() => {
+  // Escape payload: forces system to switch to Chrome / Safari
+  const triggerEscapePayload = useCallback(() => {
     if (typeof window === 'undefined') return;
+
     if (os === 'android') {
-      const intentUrl = getAndroidIntentUrl();
-      window.location.href = intentUrl;
+      try {
+        const chromeIntent = getAndroidIntentUrl();
+        window.location.href = chromeIntent;
+
+        // Fallback to generic intent after 400ms if Chrome intent was intercepted
+        setTimeout(() => {
+          try {
+            const genericIntent = getGenericAndroidIntentUrl();
+            window.location.href = genericIntent;
+          } catch { /* ignore */ }
+        }, 400);
+      } catch {
+        const genericIntent = getGenericAndroidIntentUrl();
+        window.location.href = genericIntent;
+      }
     } else {
-      // On iOS: attempt anchor with target="_blank" and copy link
+      // iOS / other: attempt system anchor, copy link, and direct user to 3-dots
       handleCopyLink();
-      const a = document.createElement('a');
-      a.href = window.location.href;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 300);
+      try {
+        const a = document.createElement('a');
+        a.href = window.location.href;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          if (a.parentNode) a.parentNode.removeChild(a);
+        }, 200);
+      } catch { /* ignore */ }
     }
   }, [os, handleCopyLink]);
 
@@ -64,216 +81,256 @@ export default function InstagramBrowserPrompt() {
     if (typeof window === 'undefined') return;
     if (!isInstagramBrowser() && !isInAppBrowser()) return;
 
-    try {
-      if (sessionStorage.getItem('insta_prompt_dismissed') === '1') return;
-    } catch { /* ignore */ }
+    const detected = getIABPlatform();
+    setOS(detected);
 
-    const detectedPlatform = getIABPlatform();
-    setOS(detectedPlatform);
-
-    // If admin explicitly disabled it, do not activate payload or banner
     if (adSettings && adSettings.instagramDetectionEnabled === false) {
       return;
     }
 
-    let timer: any;
-    let showTimer: any;
-    let t: any;
+    // Always show full-screen blurred lock inside Instagram
+    setActive(true);
 
-    // Android payload: Auto-trigger external browser intent
-    if (detectedPlatform === 'android' && !attemptedPayloadRef.current) {
-      attemptedPayloadRef.current = true;
-      try {
-        const intentUrl = getAndroidIntentUrl();
-        // Give the page 400ms to complete basic hydration, then trigger intent
-        timer = setTimeout(() => {
-          window.location.href = intentUrl;
-        }, 400);
-        // Show fallback banner in case automatic intent was blocked by WebView
-        showTimer = setTimeout(() => setVisible(true), 1200);
-      } catch {
-        setVisible(true);
-      }
-    } else {
-      // iOS / other: show guided overlay after short delay
-      t = setTimeout(() => setVisible(true), 800);
+    // Auto-fire payload on load
+    let t: NodeJS.Timeout | undefined;
+    if (!payloadFiredRef.current) {
+      payloadFiredRef.current = true;
+      t = setTimeout(() => {
+        triggerEscapePayload();
+      }, 350);
     }
-
     return () => {
-      if (timer) clearTimeout(timer);
-      if (showTimer) clearTimeout(showTimer);
       if (t) clearTimeout(t);
     };
-  }, [adSettings]);
+  }, [adSettings, triggerEscapePayload]);
 
-  if (isLoadingAdSettings) return null;
-  if (!isDetectionEnabled || !visible || dismissed) return null;
+  if (isLoadingAdSettings || !isDetectionEnabled || !active) return null;
 
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Open in external browser prompt"
+      // Backdrop locks out all page interaction; tapping anywhere re-fires the payload
+      onClick={triggerEscapePayload}
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99999,
+        inset: 0,
+        zIndex: 9999999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '12px 14px',
-        pointerEvents: 'none',
+        justifyContent: 'center',
+        padding: '20px 16px',
+        background: 'rgba(7, 8, 15, 0.88)',
+        backdropFilter: 'blur(22px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(22px) saturate(180%)',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        color: '#ffffff',
+        cursor: 'pointer',
       }}
     >
+      {/* iOS Top-Right Corner Pointer pointing to Instagram's ··· Menu */}
+      {os === 'ios' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 18,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 28,
+              lineHeight: 1,
+              animation: 'bounce 1.5s infinite',
+              marginBottom: 4,
+            }}
+          >
+            ↗️
+          </div>
+          <div
+            style={{
+              background: '#dc2743',
+              color: '#ffffff',
+              fontSize: 11,
+              fontWeight: 800,
+              padding: '4px 9px',
+              borderRadius: 20,
+              boxShadow: '0 4px 14px rgba(220,39,67,0.5)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
+            Tap ··· here
+          </div>
+        </div>
+      )}
+
+      {/* Main Lock Card */}
       <div
+        onClick={(e) => {
+          e.stopPropagation();
+          triggerEscapePayload();
+        }}
         style={{
-          pointerEvents: 'auto',
-          background: 'linear-gradient(135deg, #181928 0%, #111222 100%)',
-          borderRadius: 16,
-          padding: '14px 16px',
-          maxWidth: 440,
+          background: 'linear-gradient(145deg, #1b1c2b 0%, #101120 100%)',
+          borderRadius: 24,
+          padding: '24px 20px',
+          maxWidth: 380,
           width: '100%',
-          boxShadow: '0 12px 36px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.12)',
-          border: '1px solid rgba(220,39,67,0.3)',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          color: '#ffffff',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.12)',
+          border: '1px solid rgba(220,39,67,0.4)',
+          textAlign: 'center',
           position: 'relative',
+          cursor: 'default',
         }}
       >
-        {/* Top bar with icon & close */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                flexShrink: 0,
-                boxShadow: '0 2px 8px rgba(220,39,67,0.4)',
-              }}
-            >
-              📸
-            </div>
-            <div>
-              <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: '#ffffff' }}>
-                {os === 'ios' ? 'Open in Safari for best experience' : 'Open in Chrome Browser'}
-              </h4>
-              <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
-                Instagram browser limits chat, logins &amp; media features
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleDismiss}
-            aria-label="Dismiss banner"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: 'none',
-              borderRadius: '50%',
-              width: 26,
-              height: 26,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: 16,
-              lineHeight: 1,
-            }}
-          >
-            ×
-          </button>
+        {/* Instagram / Browser Badge */}
+        <div
+          style={{
+            width: 58,
+            height: 58,
+            borderRadius: 18,
+            background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 28,
+            margin: '0 auto 16px auto',
+            boxShadow: '0 8px 24px rgba(220,39,67,0.45)',
+          }}
+        >
+          📸
         </div>
 
-        {/* Guidance instructions for iOS */}
-        {os === 'ios' ? (
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              borderRadius: 10,
-              padding: '10px 12px',
-              marginBottom: 12,
-              fontSize: 12,
-              lineHeight: 1.45,
-              color: 'rgba(255,255,255,0.85)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <span style={{ background: '#7c3aed', borderRadius: '50%', width: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>1</span>
-              <span>Tap the <strong>···</strong> (three dots) in the top-right corner</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ background: '#7c3aed', borderRadius: '50%', width: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>2</span>
-              <span>Select <strong>Open in Safari</strong> or <strong>Open in Browser</strong></span>
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              borderRadius: 10,
-              padding: '8px 12px',
-              marginBottom: 12,
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.8)',
-            }}
-          >
-            Tap below if Chrome did not open automatically:
-          </div>
-        )}
+        <h3
+          style={{
+            margin: '0 0 8px 0',
+            fontSize: 19,
+            fontWeight: 800,
+            letterSpacing: '-0.02em',
+            color: '#ffffff',
+          }}
+        >
+          Open in External Browser
+        </h3>
 
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={handleOpenExternal}
-            style={{
-              flex: 1,
-              background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: 10,
-              padding: '9px 12px',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              boxShadow: '0 2px 8px rgba(124,58,237,0.4)',
-            }}
-          >
-            {os === 'android' ? '🚀 Open in Chrome' : '🧭 Open in Safari'}
-          </button>
+        <p
+          style={{
+            margin: '0 0 18px 0',
+            fontSize: 13,
+            lineHeight: 1.5,
+            color: 'rgba(255,255,255,0.72)',
+          }}
+        >
+          Instagram&apos;s in-app browser blocks audio, voice calls, camera uploads, and secure chat features.
+        </p>
 
-          <button
-            onClick={handleCopyLink}
-            style={{
-              background: copied ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.1)',
-              border: copied ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.15)',
-              color: copied ? '#4ade80' : '#ffffff',
-              borderRadius: 10,
-              padding: '9px 14px',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 5,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {copied ? '✓ Copied!' : '📋 Copy Link'}
-          </button>
+        {/* Step instructions */}
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            borderRadius: 14,
+            padding: '12px 14px',
+            marginBottom: 20,
+            fontSize: 12.5,
+            lineHeight: 1.5,
+            textAlign: 'left',
+            color: 'rgba(255,255,255,0.9)',
+          }}
+        >
+          {os === 'ios' ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ background: '#7c3aed', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>1</span>
+                <span>Tap the <strong>···</strong> (three dots) at the top-right</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ background: '#7c3aed', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>2</span>
+                <span>Select <strong>Open in Safari / System Browser</strong></span>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ background: '#25d366', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>✓</span>
+              <span>Tap below to open in <strong>Google Chrome</strong></span>
+            </div>
+          )}
         </div>
+
+        {/* Primary Action Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            triggerEscapePayload();
+          }}
+          style={{
+            width: '100%',
+            background: 'linear-gradient(135deg, #25d366 0%, #128c7e 100%)',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: 14,
+            padding: '13px 18px',
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            boxShadow: '0 6px 20px rgba(37,211,102,0.4)',
+            marginBottom: 10,
+            transition: 'transform 0.15s ease',
+          }}
+        >
+          <span>🚀</span>
+          <span>{os === 'android' ? 'Open in Chrome' : 'Open in Safari / Browser'}</span>
+        </button>
+
+        {/* Secondary Copy Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCopyLink();
+          }}
+          style={{
+            width: '100%',
+            background: copied ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.08)',
+            border: copied ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.15)',
+            color: copied ? '#4ade80' : '#ffffff',
+            borderRadius: 14,
+            padding: '10px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <span>{copied ? '✓ Link Copied to Clipboard!' : '📋 Copy Website Link'}</span>
+        </button>
+
+        <p
+          style={{
+            margin: '14px 0 0 0',
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.4)',
+          }}
+        >
+          Tap anywhere to retry opening in your browser
+        </p>
       </div>
     </div>
   );
 }
+

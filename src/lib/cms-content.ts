@@ -34,6 +34,11 @@ function sanitizeBlockAttributes(attribs: Record<string, string>): Record<string
   if (Number.isInteger(indent) && indent >= 1 && indent <= 4) {
     clean['data-indent'] = String(indent);
   }
+  const lh = attribs['data-line-height'] || (attribs['style']?.match(/line-height:\s*([0-9.]+|tight|snug|normal|relaxed|loose)/i)?.[1]);
+  if (lh && /^([0-9.]+|tight|snug|normal|relaxed|loose)$/i.test(lh)) {
+    clean['data-line-height'] = lh;
+    clean['style'] = `line-height: ${lh};`;
+  }
   return clean;
 }
 
@@ -50,27 +55,19 @@ export function sanitizeCmsHtml(html: unknown, opts?: { firstImageEager?: boolea
       // never leak into public article HTML.
       th: ['colspan', 'rowspan', 'scope'],
       td: ['colspan', 'rowspan'],
-      // Indentation is intentionally a small semantic level, not arbitrary
-      // inline CSS. It is used by the visual editor and is rendered by the
-      // public article stylesheet.
-      p: ['data-align', 'data-indent'],
-      span: ['data-align'],
-      h2: ['data-align', 'data-indent'],
-      h3: ['data-align', 'data-indent'],
-      h4: ['data-align', 'data-indent'],
-      h5: ['data-align', 'data-indent'],
-      h6: ['data-align', 'data-indent'],
-      pre: ['data-align', 'data-indent'],
-      li: ['data-align', 'data-indent'],
+      // Indentation and line-height are supported for editorial typography
+      p: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      span: ['data-align', 'data-line-height', 'style'],
+      h2: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      h3: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      h4: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      h5: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      h6: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      pre: ['data-align', 'data-indent', 'data-line-height', 'style'],
+      li: ['data-align', 'data-indent', 'data-line-height', 'style'],
       figure: ['data-type'],
       iframe: ['src', 'title', 'loading', 'allow', 'allowfullscreen'],
-      // Whitelisted to exactly one value — this is what marks a
-      // blockquote as a "related post" card (see BlogEditor's
-      // insertRelatedPostCard / DbBlogPostContent's PROSE styling) rather
-      // than a normal pull-quote. Anything else in this attribute is
-      // stripped by sanitize-html's `*` matching below being absent — only
-      // the literal string 'related-post' survives via the transform.
-      blockquote: ['data-type', 'data-align', 'data-indent'],
+      blockquote: ['data-type', 'data-align', 'data-indent', 'data-line-height', 'style'],
     },
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],
     allowedSchemesByTag: { a: ['http', 'https', 'mailto', 'tel'], img: ['http', 'https'] },
@@ -107,18 +104,24 @@ export function sanitizeCmsHtml(html: unknown, opts?: { firstImageEager?: boolea
         tagName,
         attribs: {
           ...(attribs['data-type'] === 'related-post' ? { 'data-type': 'related-post' } : {}),
-          ...(attribs['data-align'] && ['center', 'right'].includes(attribs['data-align'])
-            ? { 'data-align': attribs['data-align'] } : {}),
-          ...(Number.isInteger(Number(attribs['data-indent'])) && Number(attribs['data-indent']) >= 1 && Number(attribs['data-indent']) <= 4
-            ? { 'data-indent': String(Number(attribs['data-indent'])) } : {}),
+          ...sanitizeBlockAttributes(attribs),
         } as any,
       }),
-      span: (tagName, attribs) => ({
-        tagName,
-        attribs: (attribs['data-align'] && ['center', 'right'].includes(attribs['data-align'])
-          ? { 'data-align': attribs['data-align'] }
-          : {}) as Record<string, string>,
-      }),
+      span: (tagName, attribs) => {
+        const clean: Record<string, string> = {};
+        if (attribs['data-align'] && ['center', 'right'].includes(attribs['data-align'])) {
+          clean['data-align'] = attribs['data-align'];
+        }
+        const lh = attribs['data-line-height'] || (attribs['style']?.match(/line-height:\s*([0-9.]+|tight|snug|normal|relaxed|loose)/i)?.[1]);
+        if (lh && /^([0-9.]+|tight|snug|normal|relaxed|loose)$/i.test(lh)) {
+          clean['data-line-height'] = lh;
+          clean['style'] = `line-height: ${lh};`;
+        }
+        return {
+          tagName,
+          attribs: clean,
+        };
+      },
       p: (tagName, attribs) => ({
         tagName,
         attribs: sanitizeBlockAttributes(attribs) as any,
