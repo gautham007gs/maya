@@ -14,6 +14,7 @@ import AccessibilityEnhancer from '@/components/AccessibilityEnhancer';
 import ClientComponentsWrapper from '@/components/ClientComponentsWrapper';
 import InstagramBrowserPrompt from '@/components/InstagramBrowserPrompt';
 import DirectLinkGuard from '@/components/DirectLinkGuard';
+import PageViewTracker from '@/components/PageViewTracker';
 import { getHreflangAlternates } from '@/lib/hreflang';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { headers } from 'next/headers';
@@ -199,6 +200,7 @@ export default async function RootLayout({
                       <ClientComponentsWrapper />
                       <InstagramBrowserPrompt />
                       <DirectLinkGuard />
+                      <PageViewTracker />
                     </SiteImageProvider>
                   </AIMediaAssetsProvider>
                 </GlobalStatusProvider>
