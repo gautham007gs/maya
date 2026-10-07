@@ -96,7 +96,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/maya-chat`,
       changeFrequency: 'daily',
       priority: 0.98,
-      alternates: buildGeoAlternates(baseUrl),
     },
     ...SUPPORTED_COUNTRIES.map((code) => {
       const country = COUNTRY_CONFIGS[code];

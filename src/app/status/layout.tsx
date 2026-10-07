@@ -7,7 +7,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 export const metadata: Metadata = {
   title: fitSeoTitle('Kruthika Status Updates'),
   description: fitMetaDescription('View Kruthika\'s latest status updates and stories.'),
-  alternates: { canonical: `${BASE_URL}/status` },
+  alternates: {
+    canonical: `${BASE_URL}/status`,
+    languages: {},
+  },
   // Status page is a UI feature, not an SEO target — keep noindex
   robots: {
     index: false,

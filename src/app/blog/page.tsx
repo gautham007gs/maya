@@ -133,8 +133,8 @@ export default async function BlogPage(
     url: `${baseUrl}/blog`,
     publisher: {
       '@type': 'Organization',
+      '@id': `${baseUrl}#organization`,
       name: 'Kruthika.fun',
-      logo: { '@type': 'ImageObject', url: `${baseUrl}/og-image.jpg` },
     },
   };
 

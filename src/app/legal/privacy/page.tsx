@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     description: 'How Kruthika.fun collects, uses and protects your data — GDPR, CCPA and DPDP aligned.',
     url: `${BASE_URL}/legal/privacy`,
     siteName: 'Kruthika AI Girlfriend',
+    locale: 'en_US',
     type: 'website',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika Privacy Policy' }],
   },
@@ -57,7 +58,7 @@ export default function PrivacyPage() {
       slug="privacy"
       accent="emerald"
       icon={<Shield className="h-6 w-6" />}
-      title="Privacy Policy"
+      title="Privacy Policy — Kruthika AI Companion"
       metaLine="Last Updated: August 2026 • Effective Date: January 1, 2026 • Applies worldwide"
       intro={'This Privacy Policy explains how Kruthika.fun (“Kruthika”, “we”, “us”) collects, uses, discloses, and protects information when you use our AI companion web application (the “Service”). It is drafted to align with the EU General Data Protection Regulation (GDPR), the UK GDPR, the California Consumer Privacy Act as amended (CCPA/CPRA), India’s Digital Personal Data Protection Act, 2023 (DPDP Act), and other frameworks listed in §10.'}
       toc={toc}

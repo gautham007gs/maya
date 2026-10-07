@@ -75,8 +75,14 @@ const indiaSchema = {
       name: 'Kruthika AI Girlfriend',
       applicationCategory: 'SocialApplication',
       operatingSystem: 'Web, iOS, Android',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR', availability: 'https://schema.org/InStock' },
-      availableInCountry: 'IN',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'INR',
+        availability: 'https://schema.org/InStock',
+        eligibleRegion: { '@type': 'Country', name: 'India' },
+      },
+      countriesSupported: 'IN',
       inLanguage: ['en-IN', 'hi-IN', 'kn-IN', 'ta-IN', 'te-IN', 'mr-IN', 'bn-IN'],
     },
     {

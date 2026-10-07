@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     description: 'Acceptable use, AI disclaimers, eligibility and liability terms for Kruthika.fun.',
     url: `${BASE_URL}/legal/terms`,
     siteName: 'Kruthika AI Girlfriend',
+    locale: 'en_US',
     type: 'website',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika Terms of Service' }],
   },
@@ -56,7 +57,7 @@ export default function TermsPage() {
       slug="terms"
       accent="purple"
       icon={<FileText className="h-6 w-6" />}
-      title="Terms of Service"
+      title="Terms of Service — Kruthika AI Companion"
       metaLine="Last Updated: August 2026 • Effective Date: January 1, 2026"
       intro={'These Terms of Service (“Terms”) form a binding agreement between you and the Kruthika.fun operator (“Kruthika”, “we”, “us”) governing your access to and use of the AI companion web application at kruthika.fun (the “Service”). By accessing or using the Service you confirm that you have read, understood and accept these Terms and our Privacy Policy. If you do not agree, do not use the Service.'}
       toc={toc}

@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     description: 'Meet the expert writers and researchers behind the Kruthika.fun blog.',
     url: `${BASE_URL}/blog/author`,
     siteName: 'Kruthika AI Girlfriend',
+    locale: 'en_US',
     type: 'website',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika AI Girlfriend Blog Authors' }],
   },
@@ -76,7 +77,7 @@ export default async function AuthorsIndexPage() {
           {/* Header */}
           <header className="mb-10 text-center">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
-              Meet Our Authors
+              Meet Our Authors — AI &amp; Psychology Experts
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Expert writers and researchers covering AI companionship, psychology, virtual relationships,

@@ -45,22 +45,22 @@ function ShareButtons({ title, slug }: { title: string; slug: string }) {
     <div className="mt-8 pt-6 border-t border-border">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Share this article</p>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Share article">
-        {/* X / Twitter */}
+        {/* X */}
         <a
-          href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
-          target="_blank" rel="noopener noreferrer"
-          aria-label="Share on X (Twitter)"
+          href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`}
+          target="_blank" rel="nofollow noopener noreferrer"
+          aria-label="Share on X"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/60 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.263 5.633zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
           </svg>
-          X / Twitter
+          X
         </a>
         {/* WhatsApp */}
         <a
-          href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
-          target="_blank" rel="noopener noreferrer"
+          href={`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`}
+          target="_blank" rel="nofollow noopener noreferrer"
           aria-label="Share on WhatsApp"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/60 transition-colors"
         >
@@ -72,7 +72,7 @@ function ShareButtons({ title, slug }: { title: string; slug: string }) {
         {/* Facebook */}
         <a
           href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-          target="_blank" rel="noopener noreferrer"
+          target="_blank" rel="nofollow noopener noreferrer"
           aria-label="Share on Facebook"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/60 transition-colors"
         >
@@ -84,7 +84,7 @@ function ShareButtons({ title, slug }: { title: string; slug: string }) {
         {/* LinkedIn */}
         <a
           href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
-          target="_blank" rel="noopener noreferrer"
+          target="_blank" rel="nofollow noopener noreferrer"
           aria-label="Share on LinkedIn"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/60 transition-colors"
         >
@@ -151,11 +151,11 @@ function AuthorShareButtons({ name, slug }: { name: string; slug: string }) {
       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
         <Share2 className="h-3 w-3" /> Share author
       </span>
-      <a href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedName}`} target="_blank" rel="noopener noreferrer"
+      <a href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedName}`} target="_blank" rel="nofollow noopener noreferrer"
         className="rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted/60 transition-colors" aria-label={`Share ${name} on X`}>X</a>
-      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`} target="_blank" rel="noopener noreferrer"
+      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`} target="_blank" rel="nofollow noopener noreferrer"
         className="rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted/60 transition-colors" aria-label={`Share ${name} on LinkedIn`}>LinkedIn</a>
-      <a href={`https://wa.me/?text=${encodedName}%20${encodedUrl}`} target="_blank" rel="noopener noreferrer"
+      <a href={`https://api.whatsapp.com/send?text=${encodedName}%20${encodedUrl}`} target="_blank" rel="nofollow noopener noreferrer"
         className="rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted/60 transition-colors" aria-label={`Share ${name} on WhatsApp`}>WhatsApp</a>
     </div>
   );

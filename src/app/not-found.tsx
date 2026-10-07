@@ -10,16 +10,20 @@ export const metadata: Metadata = {
     follow: false,
     googleBot: { index: false, follow: false },
   },
+  alternates: {
+    canonical: undefined,
+    languages: {},
+  },
 };
 
 const POPULAR_LINKS = [
-  { href: '/maya-chat',   label: 'Chat with Kruthika (Free)' },
-  { href: '/blog',        label: 'AI Girlfriend Blog' },
-  { href: '/blog/best-ai-girlfriend-apps-2026-ranked', label: 'Best AI Girlfriend Apps 2026' },
-  { href: '/blog/ai-companion-loneliness-2026-research', label: 'AI Girlfriend & Loneliness' },
-  { href: '/blog/how-ai-girlfriend-technology-works-2026', label: 'How AI Girlfriends Work' },
-  { href: '/about',       label: 'About Kruthika' },
-  { href: '/faq',         label: 'FAQ' },
+  { href: '/maya-chat',                   label: 'Chat with Kruthika (Free)' },
+  { href: '/blog',                        label: 'AI Companion Blog' },
+  { href: '/blog/category/psychology',    label: 'AI Psychology & Companionship' },
+  { href: '/blog/category/how-to',        label: 'Guides & Conversations' },
+  { href: '/blog/category/privacy-safety',label: 'Privacy & Safety' },
+  { href: '/about',                       label: 'About Kruthika' },
+  { href: '/faq',                         label: 'FAQ' },
 ];
 
 export default function NotFound() {

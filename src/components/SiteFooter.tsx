@@ -71,9 +71,9 @@ export default async function SiteFooter() {
             </a>
             <div className="flex items-center gap-3">
               <a
-                href="https://twitter.com/kruthikafun"
-                target="_blank" rel="noopener noreferrer"
-                aria-label="Kruthika on X (Twitter)"
+                href="https://x.com/kruthikafun"
+                target="_blank" rel="noopener noreferrer me"
+                aria-label="Kruthika on X"
                 className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -82,7 +82,7 @@ export default async function SiteFooter() {
               </a>
               <a
                 href="https://www.instagram.com/kruthikafun"
-                target="_blank" rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer me"
                 aria-label="Kruthika on Instagram"
                 className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
               >
@@ -102,7 +102,7 @@ export default async function SiteFooter() {
               <li><Link href="/" className={linkCls}>{t.footerHome}</Link></li>
               <li><Link href="/maya-chat" className={linkCls}>{t.chatWithKruthika}</Link></li>
               <li><Link href="/faq" className={linkCls}>{t.footerFaq}</Link></li>
-              <li><Link href="/status" className={linkCls}>Status</Link></li>
+              <li><Link href="/status" rel="nofollow" className={linkCls}>Status</Link></li>
               <li><Link href="/about" className={linkCls}>{t.footerAboutUs}</Link></li>
               <li><Link href="/contact" className={linkCls}>{t.footerContact}</Link></li>
             </ul>

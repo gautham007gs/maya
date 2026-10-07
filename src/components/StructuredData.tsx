@@ -48,13 +48,14 @@ const organizationSchema = {
   "description": "Chat with Kruthika, a 23yo Indian girl who loves chatting, providing companionship and emotional support.",
   "foundingDate": "2024",
   "areaServed": ["US", "GB", "CA", "AU", "IN", "BR", "ID", "MY", "PH", "NG", "PK", "AE", "Worldwide"],
-  "availableLanguage": ["English", "Hindi", "Kannada", "Tamil", "Telugu", "Marathi", "Bengali", "Gujarati", "Punjabi"],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "Customer Support",
-    "availableLanguage": ["English", "Hindi", "Kannada", "Tamil", "Telugu", "Marathi", "Bengali"],
-    "areaServed": "Worldwide"
-  },
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "contactType": "Customer Support",
+      "availableLanguage": ["English", "Hindi", "Kannada", "Tamil", "Telugu", "Marathi", "Bengali", "Gujarati", "Punjabi"],
+      "areaServed": "Worldwide"
+    }
+  ],
   "sameAs": [
     "https://twitter.com/kruthikafun",
     "https://www.facebook.com/kruthikafun",
@@ -63,33 +64,18 @@ const organizationSchema = {
 };
 
 const websiteSchema = {
-  "@context": "https://schema.org",
   "@type": "WebSite",
   "@id": `${baseUrl}#website`,
   "name": "Chat with Kruthika",
-  "alternateName": ["Kruthika Chat", "Kruthika AI", "Kruthika.fun", "Kruthika AI Girlfriend"],
+  "alternateName": ["Kruthika Chat", "Kruthika AI", "Kruthika.fun", "Kruthika AI Companion"],
   "description": "Chat with Kruthika, a friendly 23-year-old Indian girl who loves making new friends and having meaningful conversations.",
   "url": baseUrl,
-  // The site serves English, Hindi, Tamil, Telugu, Kannada, Bengali, and more —
-  // listing only "en-US" was factually incorrect since the app supports 10+
-  // Indian languages (audit #18).
   "inLanguage": ["en", "hi", "ta", "te", "kn", "bn", "mr", "gu", "pa", "ur"],
   "publisher": {
     "@type": "Organization",
     "@id": `${baseUrl}#organization`,
     "name": "Kruthika.fun"
-  },
-  // speakable: helps Google Assistant and AI search engines (Perplexity, ChatGPT)
-  // identify which page sections to read aloud in voice answers (AEO signal).
-  "speakable": {
-    "@type": "SpeakableSpecification",
-    "cssSelector": ["h1", ".chat-hero-desc", ".site-tagline"]
   }
-  // SearchAction intentionally omitted: the blog page only handles ?page
-  // pagination — there is no /blog?q= search endpoint. A SearchAction pointing
-  // to a non-functional URL is invalid structured data that can suppress rich
-  // results in Google Search Console (audit #62). Re-add once a real blog
-  // search route is implemented.
 };
 
 const webApplicationSchema = {
@@ -161,21 +147,19 @@ const howToSchema = {
   ]
 };
 
-// Sitewide: describes the publisher/site itself, correct on every page.
+// Sitewide: describes the publisher/site itself in a single unified @graph.
 // Mounted once, in the root layout.
-const sitewideSchemas = [organizationSchema, websiteSchema];
+const sitewideGraph = {
+  '@context': 'https://schema.org',
+  '@graph': [organizationSchema, websiteSchema],
+};
 
 export default function StructuredData() {
   return (
-    <>
-      {sitewideSchemas.map((schema, index) => (
-        <script
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
-    </>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(sitewideGraph) }}
+    />
   );
 }
 

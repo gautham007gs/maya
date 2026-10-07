@@ -15,7 +15,6 @@ import ClientComponentsWrapper from '@/components/ClientComponentsWrapper';
 import InstagramBrowserPrompt from '@/components/InstagramBrowserPrompt';
 import DirectLinkGuard from '@/components/DirectLinkGuard';
 import PageViewTracker from '@/components/PageViewTracker';
-import { getHreflangAlternates } from '@/lib/hreflang';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { headers } from 'next/headers';
 import SiteFooter from '@/components/SiteFooter';
@@ -52,7 +51,6 @@ const getBaseUrl = () => process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.f
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
-  alternates: getHreflangAlternates('/'),
   title: {
     default: 'Best Free AI Girlfriend 2026 | Kruthika — No Sign Up',
     template: '%s | Kruthika'

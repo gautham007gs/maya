@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     description: 'WCAG 2.1 AA conformance status, implemented measures and feedback channels.',
     url: `${BASE_URL}/legal/accessibility`,
     siteName: 'Kruthika AI Girlfriend',
+    locale: 'en_US',
     type: 'website',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika Accessibility Statement' }],
   },

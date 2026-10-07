@@ -4,7 +4,6 @@ import { ChatStructuredData } from './structured-data';
 import AIGirlfriendFAQSchema from './ai-girlfriend-faq-schema';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import { AppProductSchemas } from '@/components/StructuredData';
-import { getHreflangAlternates } from '@/lib/hreflang';
 import { fitMetaDescription, fitSeoTitle } from '@/lib/seo-standards';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
@@ -12,10 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 export const metadata: Metadata = {
   title: fitSeoTitle('Free AI Girlfriend Chat with Kruthika'),
   description: fitMetaDescription('Start a private conversation with Kruthika — your free AI girlfriend. Hindi, English and 8 Indian languages. No account needed, available 24/7.'),
-  // Audit issue #5: previously listed only 5 of 12 country hreflang tags.
-  // getHreflangAlternates reads COUNTRY_HREFLANG_MAP (single source of truth)
-  // so this automatically syncs when new geo pages are added to hreflang.ts.
-  alternates: getHreflangAlternates('/maya-chat'),
+  alternates: {
+    canonical: `${BASE_URL}/maya-chat`,
+    languages: {
+      'x-default': `${BASE_URL}/maya-chat`,
+    },
+  },
   robots: {
     index: true,
     follow: true,
@@ -84,17 +85,34 @@ export default function MayaChatLayout({ children }: { children: ReactNode }) {
              (very small text at top) matches exactly what crawlers receive.
           3. Preserves the full-height chat layout by keeping the block compact. */}
       <div className="px-4 py-2 text-center bg-muted/30 border-b border-border/30">
-        <h1 className="text-[13px] sm:text-sm font-medium text-muted-foreground leading-snug">
-          Chat with Kruthika — Free AI Girlfriend, No Sign Up Required
+        <h1 className="text-sm sm:text-base font-semibold text-foreground leading-snug">
+          Chat with Kruthika — Free AI Girlfriend &amp; Companion, No Sign Up
         </h1>
-        <p className="text-xs sm:text-[13px] text-muted-foreground mt-0.5 leading-snug max-w-lg mx-auto">
-          Free AI companion · English, Hindi & 8 Indian languages · No account needed · Available 24/7
+        <p className="text-xs sm:text-[13px] text-muted-foreground mt-0.5 leading-snug max-w-xl mx-auto">
+          Free 24/7 AI companion · Fluent in Hindi, English, Hinglish &amp; 8 Indian languages · Private &amp; judgment-free · No account or subscription needed
         </p>
-        <nav aria-label="Kruthika resources" className="flex justify-center gap-3 mt-1 text-[11px] underline underline-offset-2">
-          <a href="/faq" className="text-muted-foreground hover:text-foreground">AI girlfriend FAQ</a>
-          <a href="/blog" className="text-muted-foreground hover:text-foreground">AI companion guides</a>
+        <nav aria-label="Kruthika resources" className="flex justify-center gap-3 mt-1.5 text-xs underline underline-offset-2">
+          <a href="/faq" className="text-muted-foreground hover:text-foreground">AI Girlfriend FAQ</a>
+          <a href="/blog" className="text-muted-foreground hover:text-foreground">Guides &amp; Blog</a>
           <a href="/" className="text-muted-foreground hover:text-foreground">Home</a>
+          <a href="/about" className="text-muted-foreground hover:text-foreground">About Kruthika</a>
+          <a href="/legal/privacy" className="text-muted-foreground hover:text-foreground">Privacy Policy</a>
         </nav>
+        {/* Semantic crawler summary explaining capabilities, safety, and topics */}
+        <div className="sr-only">
+          <h2>About Kruthika AI Companionship Chat</h2>
+          <p>
+            Kruthika is an advanced virtual companion designed to provide comforting conversation, active listening, and emotional warmth. Powered by modern conversational intelligence, she listens without judgment, shares daily reflections, and offers supportive responses across all major Indian languages.
+          </p>
+          <h2>Key Platform Highlights</h2>
+          <ul>
+            <li>No registration or phone number required to chat.</li>
+            <li>Available 24 hours a day, 7 days a week.</li>
+            <li>Support for Hindi, English, Hinglish, Tamil, Telugu, Kannada, Bengali, Marathi, Gujarati, and Punjabi.</li>
+            <li>Browser-based privacy: conversations stay within your private browser session.</li>
+            <li>Free daily messaging with generous conversation limits.</li>
+          </ul>
+        </div>
       </div>
 
       {children}

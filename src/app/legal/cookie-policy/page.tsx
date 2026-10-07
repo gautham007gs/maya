@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     description: 'Every storage key explained: purpose, category and duration.',
     url: `${BASE_URL}/legal/cookie-policy`,
     siteName: 'Kruthika AI Girlfriend',
+    locale: 'en_US',
     type: 'website',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika Cookie Policy' }],
   },
@@ -50,7 +51,7 @@ export default function CookiePolicyPage() {
       slug="cookie-policy"
       accent="amber"
       icon={<Cookie className="h-6 w-6" />}
-      title="Cookie Policy"
+      title="Cookie Policy — Kruthika AI Companion"
       metaLine="Last Updated: August 2026 • Transparent Privacy Standards"
       intro={'This Cookie Policy explains the cookies and browser-storage technologies Kruthika.fun uses, why we use them, and how you can manage or revoke consent at any time. It complements our Privacy Policy.'}
       toc={toc}

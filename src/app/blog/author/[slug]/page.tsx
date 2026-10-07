@@ -18,11 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const author = await getAuthorBySlugAsync(slug);
   if (!author) {
-    return {
-      title: 'Author Not Found',
-      description: 'The requested blog author could not be found.',
-      robots: { index: false, follow: false },
-    };
+    notFound();
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
@@ -51,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url,
       type: 'profile',
+      locale: 'en_US',
       siteName: 'Kruthika AI Girlfriend',
       images: [{ url: `${baseUrl}/og-image.jpg`, width: 1200, height: 630, alt: `${author.name} — Author at Kruthika.fun` }],
     },
@@ -204,15 +201,18 @@ export default async function AuthorPage({ params }: Props) {
 
                 {/* Info */}
                 <div className="flex-1">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-1">{author.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-1">
+                    {author.name}{author.title ? ` — ${author.title}` : ' — Author & Contributor'}
+                  </h1>
                   <p className="text-sm sm:text-base text-purple-700 font-semibold mb-2">{author.title}</p>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{author.location}</span>
                     <span className="flex items-center gap-1"><Pen className="h-3 w-3" />{posts.length} article{posts.length !== 1 ? 's' : ''}</span>
                     {author.twitter && (
-                      <a href={`https://twitter.com/${author.twitter}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors">
-                        <ExternalLink className="h-3 w-3" /> @{author.twitter}
+                      <a href={`https://x.com/${author.twitter.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer me"
+                        className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors"
+                        aria-label={`${author.name} on X`}>
+                        <ExternalLink className="h-3 w-3" /> @{author.twitter.replace(/^@/, '')}
                       </a>
                     )}
                   </div>

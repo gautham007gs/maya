@@ -8,7 +8,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 export const metadata: Metadata = {
   title: fitSeoTitle('About Kruthika — Free AI Girlfriend Platform'),
   description: fitMetaDescription('Learn about Kruthika.fun — free AI girlfriend platform. Our mission: emotional support and companionship through advanced AI, trusted by 1M+ users worldwide.'),
-  alternates: { canonical: `${BASE_URL}/about` },
+  alternates: {
+    canonical: `${BASE_URL}/about`,
+    languages: { 'x-default': `${BASE_URL}/about` },
+  },
   robots: {
     index: true,
     follow: true,
@@ -20,6 +23,7 @@ export const metadata: Metadata = {
     url: `${BASE_URL}/about`,
     siteName: 'Kruthika AI Girlfriend',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'About Kruthika AI Girlfriend' }],
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
@@ -48,32 +52,10 @@ const jsonLd = {
           { '@type': 'ListItem', position: 2, name: 'About', item: `${BASE_URL}/about` },
         ],
       },
-      mainEntity: { '@id': `${BASE_URL}/#organization` },
-    },
-    {
-      '@type': 'Organization',
-      '@id': `${BASE_URL}/#organization`,
-      name: 'Kruthika.fun',
-      alternateName: 'Kruthika AI',
-      description: 'Free AI girlfriend platform providing emotional support, companionship, and multilingual conversation — trusted by 1M+ users worldwide.',
-      url: BASE_URL,
-      logo: {
-        '@type': 'ImageObject',
-        url: `${BASE_URL}/icon-512.png`,
-        width: 512,
-        height: 512,
-      },
-      foundingDate: '2024',
-      areaServed: ['IN', 'US', 'GB', 'CA', 'AU'],
-      availableLanguage: ['English', 'Hindi', 'Tamil', 'Telugu', 'Kannada', 'Marathi', 'Bengali'],
-      sameAs: [
-        'https://twitter.com/kruthikafun',
-      ],
-      contactPoint: {
-        '@type': 'ContactPoint',
-        email: 'support@kruthika.fun',
-        contactType: 'customer support',
-        availableLanguage: ['English', 'Hindi'],
+      mainEntity: {
+        '@type': 'Organization',
+        '@id': `${BASE_URL}#organization`,
+        name: 'Kruthika.fun',
       },
     },
   ],

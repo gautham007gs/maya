@@ -21,11 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategory(slug);
   if (!category) {
-    return {
-      title: 'Category Not Found',
-      description: 'The requested blog category could not be found.',
-      robots: { index: false, follow: false },
-    };
+    notFound();
   }
 
   const title = fitSeoTitle(category.seo_title || `${category.name} — AI Girlfriend Blog`);
@@ -47,6 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url,
       siteName: 'Kruthika AI Girlfriend',
+      locale: 'en_US',
       type: 'website',
       images: [{ url: `${baseUrl}/og-image.webp`, width: 1200, height: 630, alt: `${category.name} articles` }],
     },
@@ -134,11 +131,16 @@ export default async function BlogCategoryPage({ params }: Props) {
           </nav>
           <header className="mb-10 text-center">
             <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary mb-3">
-              <Tag className="h-4 w-4" /> Blog category
+              <Tag className="h-4 w-4" /> Topic Category
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">{category.name}</h1>
-            <p className="max-w-xl mx-auto text-base text-muted-foreground leading-relaxed">
-              {category.description || `Guides, insights, and practical advice about ${category.name}.`}
+            <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">
+              {category.name} — AI Companion Articles
+            </h1>
+            <p className="max-w-2xl mx-auto text-base text-muted-foreground leading-relaxed mb-4">
+              {category.description || `In-depth analysis, research guides, and expert practical advice exploring ${category.name} in modern conversational AI and emotional companionship.`}
+            </p>
+            <p className="max-w-2xl mx-auto text-sm text-muted-foreground/90 leading-relaxed">
+              Explore our curated resources written by relationship psychology specialists and AI researchers. Learn how conversational agents adapt to human emotions, support personal wellbeing, and foster healthy digital interactions.
             </p>
           </header>
           {posts.length > 0 ? (

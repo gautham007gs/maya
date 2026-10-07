@@ -64,9 +64,15 @@ export default function GeoPageTemplate({ config }: { config: GeoPageConfig }) {
         name: 'Kruthika AI Girlfriend',
         applicationCategory: 'SocialApplication',
         operatingSystem: 'Web, iOS, Android',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: config.currency, availability: 'https://schema.org/InStock' },
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: config.currency,
+          availability: 'https://schema.org/InStock',
+          eligibleRegion: { '@type': 'Country', name: config.countryName },
+        },
         author: { '@type': 'Organization', '@id': `${BASE_URL}#organization` },
-        availableInCountry: config.code.toUpperCase(),
+        countriesSupported: config.code.toUpperCase(),
         inLanguage: config.inLanguage,
       },
       {

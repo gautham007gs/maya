@@ -9,7 +9,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 export const metadata: Metadata = {
   title: fitSeoTitle('Contact Us — Kruthika AI Girlfriend Support'),
   description: fitMetaDescription('Get in touch with Kruthika.fun support team. We\'re here to help with questions about our free AI girlfriend platform, privacy concerns, or technical issues.'),
-  alternates: { canonical: `${BASE_URL}/contact` },
+  alternates: {
+    canonical: `${BASE_URL}/contact`,
+    languages: { 'x-default': `${BASE_URL}/contact` },
+  },
   robots: {
     index: true,
     follow: true,
@@ -21,6 +24,7 @@ export const metadata: Metadata = {
     url: `${BASE_URL}/contact`,
     siteName: 'Kruthika AI Girlfriend',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Contact Kruthika AI Girlfriend' }],
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
@@ -48,35 +52,11 @@ const jsonLd = {
           { '@type': 'ListItem', position: 2, name: 'Contact', item: `${BASE_URL}/contact` },
         ],
       },
-    },
-    {
-      '@type': 'Organization',
-      '@id': `${BASE_URL}/#organization`,
-      name: 'Kruthika.fun',
-      url: BASE_URL,
-      logo: { '@type': 'ImageObject', url: `${BASE_URL}/icon-512.png`, width: 512, height: 512 },
-      contactPoint: [
-        {
-          '@type': 'ContactPoint',
-          email: 'support@kruthika.fun',
-          contactType: 'customer support',
-          availableLanguage: ['English', 'Hindi'],
-          areaServed: 'Worldwide',
-        },
-        {
-          '@type': 'ContactPoint',
-          email: 'privacy@kruthika.fun',
-          contactType: 'privacy',
-          availableLanguage: ['English'],
-        },
-        {
-          '@type': 'ContactPoint',
-          email: 'partnerships@kruthika.fun',
-          contactType: 'sales',
-          availableLanguage: ['English'],
-        },
-      ],
-      sameAs: ['https://twitter.com/kruthikafun'],
+      mainEntity: {
+        '@type': 'Organization',
+        '@id': `${BASE_URL}#organization`,
+        name: 'Kruthika.fun',
+      },
     },
   ],
 };

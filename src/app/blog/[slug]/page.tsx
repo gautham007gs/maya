@@ -90,13 +90,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch { /* fall through to static */ }
 
-  // Fall back to static metadata
+  // Check redirect before 404
+  try {
+    const replacement = (await getPostRedirect(decodedSlug)) || (await getPostRedirect(slug));
+    if (replacement) redirect(`/blog/${replacement}`);
+  } catch (err: any) {
+    if (err?.digest?.startsWith?.('NEXT_REDIRECT')) throw err;
+  }
+
+  // Fall back to static metadata if present, otherwise trigger notFound
   if (!blogPostsMetadata[slug]) {
-    return {
-      title: 'Blog Post Not Found',
-      description: 'The requested blog post could not be found.',
-      robots: { index: false, follow: false },
-    };
+    notFound();
   }
   return generateBlogMetadata(slug);
 }

@@ -10,7 +10,10 @@ const BASE_URL_META = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun'
 export const metadata: Metadata = {
   title: fitSeoTitle('FAQ — AI Girlfriend Questions Answered'),
   description: fitMetaDescription('Answers to all your questions about Kruthika, the free AI girlfriend. How it works, privacy, languages, safety, and more — no sign-up required.'),
-  alternates: { canonical: `${BASE_URL_META}/faq` },
+  alternates: {
+    canonical: `${BASE_URL_META}/faq`,
+    languages: { 'x-default': `${BASE_URL_META}/faq` },
+  },
   robots: {
     index: true,
     follow: true,
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
     url: `${BASE_URL_META}/faq`,
     siteName: 'Kruthika AI Girlfriend',
     images: [{ url: `${BASE_URL_META}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika AI Girlfriend FAQ' }],
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {

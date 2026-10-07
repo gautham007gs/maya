@@ -188,13 +188,13 @@ export default function FAQAccordion() {
             <h4 className="font-semibold mb-2">Psychology of AI Girlfriends</h4>
             <p className="text-muted-foreground text-sm">Learn why virtual relationships feel real and meaningful...</p>
           </Link>
-          <Link href="/blog/is-ai-girlfriend-safe-privacy-mental-health-2026" className="block p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow">
+          <Link href="/blog/category/privacy-safety" className="block p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow">
             <h4 className="font-semibold mb-2">Privacy &amp; Safety Guide</h4>
             <p className="text-muted-foreground text-sm">Understand how we protect your data and conversations...</p>
           </Link>
-          <Link href="/blog/how-to-talk-to-ai-girlfriend-better-conversations" className="block p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow">
+          <Link href="/blog/category/how-to" className="block p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow">
             <h4 className="font-semibold mb-2">Conversation Guide</h4>
-            <p className="text-muted-foreground text-sm">Master the art of chatting with your AI girlfriend...</p>
+            <p className="text-muted-foreground text-sm">Master the art of chatting with your AI companion...</p>
           </Link>
           <Link href="/blog" className="block p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow">
             <h4 className="font-semibold mb-2">View All Articles</h4>

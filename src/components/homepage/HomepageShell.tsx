@@ -23,7 +23,9 @@ export default function HomepageShell() {
     <div className="flex flex-col h-screen h-[100dvh] w-full max-w-3xl mx-auto bg-background md:shadow-2xl overflow-hidden">
       <header className="bg-[#25d366] shadow-sm sticky top-0 z-10 flex-shrink-0">
         <div className="px-4 py-3 sm:px-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">{t.aiGirlfriend}</h1>
+          <h1 className="text-xl font-bold text-white tracking-tight">
+            {t.aiGirlfriend ? `${t.aiGirlfriend} — Free AI Chat` : 'Free AI Companion Chat — No Sign Up'}
+          </h1>
           <nav className="flex items-center space-x-3" aria-label={t.chats}>
             <button
               className="hover:bg-white/10 rounded-full p-2 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"

@@ -6,7 +6,6 @@ import {
   COUNTRY_COOKIE,
   detectCountryFromRequest,
   detectLanguageFromRequest,
-  getCountryConfig,
 } from './lib/locales'
 import { SESSION_COOKIE, verifyAdminSessionFromCookie } from './lib/admin-auth'
 import { isTrustedHost, resolveTrustedHost, normalizeForwardedProto } from './lib/trusted-hosts'
@@ -326,11 +325,10 @@ export async function proxy(request: NextRequest) {
     request.cookies.get('kruthika_ui_lang')?.value,
     request.headers.get('accept-language'),
   );
-  const htmlLang = pathname === '/' || !COUNTRY_HREFLANG_MAP[pathname]
-    ? `${uiLang}-${getCountryConfig(country).locale.split('-')[1]}`
-    : COUNTRY_HREFLANG_MAP[pathname]
-      || COUNTRY_HREFLANG_MAP[normalizedPathname]
-      || getCountryConfig(country).locale;
+  const geoHreflang = COUNTRY_HREFLANG_MAP[normalizedPathname] || COUNTRY_HREFLANG_MAP[pathname];
+  const htmlLang = geoHreflang
+    ? geoHreflang.split('-')[0].toLowerCase()
+    : (pathname === '/' ? (uiLang || 'en') : 'en');
 
   // Apply enhanced maximum security ONLY to API routes (not pages/assets)
   if (pathname.startsWith('/api/')) {

@@ -254,40 +254,78 @@ const nextConfig = {
 
   async redirects() {
     return [
-      // Old blog slugs → current DB slugs (fixes 8 broken internal links / 404s)
+      // Collapse www.kruthika.fun → https://kruthika.fun in a single 301 hop (fixes I-23 redirect chain)
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.kruthika.fun" }],
+        destination: "https://kruthika.fun/:path*",
+        permanent: true,
+      },
+      // Soft-404 / unpublished slugs → clean 301 redirects to live sections (fixes I-01, RC1)
+      {
+        source: "/blog/best-ai-girlfriend-apps-2026-ranked",
+        destination: "/blog",
+        permanent: true,
+      },
+      {
+        source: "/blog/ai-companion-loneliness-2026-research",
+        destination: "/blog/category/psychology",
+        permanent: true,
+      },
+      {
+        source: "/blog/how-ai-girlfriend-technology-works-2026",
+        destination: "/blog/category/technology",
+        permanent: true,
+      },
+      {
+        source: "/blog/how-to-talk-to-ai-girlfriend-better-conversations",
+        destination: "/blog/category/how-to",
+        permanent: true,
+      },
+      {
+        source: "/blog/is-ai-girlfriend-safe-privacy-mental-health-2026",
+        destination: "/blog/category/privacy-safety",
+        permanent: true,
+      },
+      {
+        source: "/blog/author/habibi",
+        destination: "/blog/author",
+        permanent: true,
+      },
+      // Legacy 2025 slug redirects → live sections
       {
         source: "/blog/psychology-ai-girlfriends",
-        destination: "/blog/ai-girlfriend-psychology-2026",
+        destination: "/blog/category/psychology",
         permanent: true,
       },
       {
         source: "/blog/ai-girlfriend-privacy-safety-guide",
-        destination: "/blog/ai-girlfriend-privacy-safety-2026",
+        destination: "/blog/category/privacy-safety",
         permanent: true,
       },
       {
         source: "/blog/how-to-talk-ai-girlfriend-conversation-guide",
-        destination: "/blog/how-to-talk-ai-girlfriend-2026",
+        destination: "/blog/category/how-to",
         permanent: true,
       },
       {
         source: "/blog/best-ai-girlfriend-2025",
-        destination: "/blog/best-ai-girlfriend-apps-2026-ranked",
+        destination: "/blog",
         permanent: true,
       },
       {
         source: "/blog/best-ai-girlfriend-apps-india-2025",
-        destination: "/blog/ai-girlfriends-india-2026",
+        destination: "/blog",
         permanent: true,
       },
       {
         source: "/blog/ai-girlfriend-emotional-support-loneliness",
-        destination: "/blog/ai-companion-loneliness-2026-research",
+        destination: "/blog/category/psychology",
         permanent: true,
       },
       {
         source: "/blog/how-does-ai-girlfriend-work-technology-guide",
-        destination: "/blog/how-ai-girlfriend-technology-works-2026",
+        destination: "/blog/category/technology",
         permanent: true,
       },
       { source: "/blog/related-post", destination: "/blog", permanent: true },

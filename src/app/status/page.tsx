@@ -374,7 +374,7 @@ const StatusPage: React.FC = () => {
             >
               <ArrowLeft size={22} className="text-white" />
             </button>
-            <h1 className="text-2xl font-bold text-white">Status</h1>
+            <h1 className="text-2xl font-bold text-white">Kruthika Platform Status</h1>
             <div className="flex items-center space-x-2 ml-auto">
               <button
                 className="hover:bg-white/20 rounded-full p-2 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"

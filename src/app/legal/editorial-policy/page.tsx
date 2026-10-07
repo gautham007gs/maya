@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     description: 'Human-reviewed standards, AI transparency and corrections policy for our blog.',
     url: `${BASE_URL}/legal/editorial-policy`,
     siteName: 'Kruthika AI Girlfriend',
+    locale: 'en_US',
     type: 'website',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika Editorial Policy' }],
   },
