@@ -210,12 +210,19 @@ const nextConfig = {
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
       {
+        // /status is noindex via its metadata; the generic block below used to
+        // ALSO send "index, follow" for it — two contradictory robots signals
+        // on one URL. Give it the same noindex at header level.
+        source: "/status",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
         // Excludes /api, /admin, /lite, /diagnostics, and _next/ — those have their own
         // header blocks above and must not also receive this block's public/
         // cacheable Cache-Control or "index, follow" X-Robots-Tag (SEO audit
         // #3, #4). Everything else (real, public, indexable pages) matches
         // as before.
-        source: "/((?!api/|admin/|lite/|diagnostics/|_next/).*)",
+        source: "/((?!api/|admin/|lite/|diagnostics/|status$|status/|_next/).*)",
         headers: [
           ...securityHeaders.filter(
             (h) => h.key !== "Cache-Control" && h.key !== "X-Robots-Tag",
@@ -235,7 +242,7 @@ const nextConfig = {
           {
             key: "X-Robots-Tag",
             value:
-              "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+              "index, follow, max-image-preview:large, max-video-preview:-1",
           },
           // CORS: wildcard (*) and credentials:true are mutually exclusive per spec.
           // Same-origin requests (the normal case for this app) do not need CORS

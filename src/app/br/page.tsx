@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   other: {
     'geo.region':    geo.region,
@@ -104,7 +104,6 @@ export default function BrazilPage() {
             </Link>
             <div className="flex flex-wrap justify-center gap-5 mt-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-1"><Users className="h-4 w-4" />Comunidade em crescimento no Brasil</span>
-              <span className="flex items-center gap-1"><Star className="h-4 w-4 text-yellow-500" />4.7/5 Avaliação</span>
               <span className="flex items-center gap-1"><Zap className="h-4 w-4 text-green-500" />100% Grátis</span>
             </div>
           </div>

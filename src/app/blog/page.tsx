@@ -13,6 +13,8 @@ import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import { isOptimizableImageSrc, isRenderableImageSrc } from '@/lib/image-src';
 import { serializeJsonLd } from '@/lib/blog-jsonld';
 import { fitMetaDescription, fitSeoTitle } from '@/lib/seo-standards';
+import ShareLinks from '@/components/trust/ShareLinks';
+import AiDisclaimer from '@/components/trust/AiDisclaimer';
 
 // Revalidate every 60 s so newly published posts appear quickly without a full rebuild
 export const revalidate = 60;
@@ -44,7 +46,7 @@ export async function generateMetadata(
     },
     robots: {
       index: true, follow: true,
-      googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
+      googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large' },
     },
     openGraph: {
       title: `AI Girlfriend Blog 2026: Expert Guides & Reviews${titleSuffix}`,
@@ -183,17 +185,17 @@ export default async function BlogPage(
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-6">
           <section className="text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent leading-tight">
-              AI Girlfriend Insights & Guides
+              Guides to AI Companionship
             </h1>
             <p className="blog-description text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto mb-6 leading-relaxed">
-              The ultimate resource for AI girlfriend insights, virtual companions, emotional support technology, and the future of digital relationships in 2026.
+              Plain-language guides on how AI companions work, how to use them safely, and what they can and cannot do for loneliness and everyday wellbeing.
             </p>
           </section>
 
           {/* Featured CTA */}
           <div className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-200 rounded-xl p-5 mb-6 max-w-xl mx-auto text-center">
             <h2 className="text-lg font-bold mb-2">Ready to Experience AI Love?</h2>
-            <p className="text-sm text-muted-foreground mb-3">Meet Kruthika — India's best AI girlfriend, completely free.</p>
+            <p className="text-sm text-muted-foreground mb-3">Meet Kruthika, a friendly companion who chats in Hindi and English for free.</p>
             <a href="/maya-chat"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-2.5 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg text-sm">
               <MessageCircle className="h-4 w-4" />
@@ -245,16 +247,16 @@ export default async function BlogPage(
             <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-200 rounded-lg p-8 text-center my-8">
               <h3 className="text-2xl font-bold mb-4 flex items-center justify-center gap-2">
                 <Sparkles className="h-6 w-6 text-blue-500" />
-                Discover AI Girlfriend Magic
+                Try a Conversation
                 <Sparkles className="h-6 w-6 text-blue-500" />
               </h3>
               <p className="text-lg mb-6 max-w-2xl mx-auto">
-                Ready to move beyond reading? Experience the emotional connection that millions are discovering.
+                Ready to move beyond reading? Start a free chat and see how it feels.
               </p>
               <a href="/maya-chat"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-8 py-4 rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-300 font-bold text-lg shadow-xl">
                 <Heart className="h-6 w-6" />
-                Start Your AI Love Story
+                Start Chatting
                 <ArrowRight className="h-6 w-6" />
               </a>
             </div>
@@ -314,10 +316,10 @@ export default async function BlogPage(
           <div className="text-center mt-12">
             <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-200 rounded-xl p-12">
               <h3 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Ready to Experience AI Girlfriend Companionship?
+                Ready to Try It Yourself?
               </h3>
               <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-                You've read about the psychology, technology, and benefits of AI girlfriends. Now experience it yourself.
+                You have read about the psychology and the technology. Now see what a conversation is like.
               </p>
               <div className="grid md:grid-cols-3 gap-6 mb-8 text-sm">
                 {[
@@ -335,7 +337,7 @@ export default async function BlogPage(
               <a href="/maya-chat"
                 className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-10 py-5 rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 font-bold text-xl shadow-2xl transform hover:scale-105">
                 <MessageCircle className="h-7 w-7" />
-                Meet Your AI Girlfriend Kruthika
+                Meet Kruthika
                 <ArrowRight className="h-7 w-7" />
               </a>
             </div>
@@ -344,18 +346,21 @@ export default async function BlogPage(
           {/* SEO footer */}
           <div className="mt-16 pt-8 border-t border-border">
             <div className="prose prose-sm max-w-none text-muted-foreground">
-              <h4 className="text-lg font-semibold text-foreground mb-4">About Kruthika.fun AI Girlfriend Blog</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-4">About This Blog</h4>
               <p className="mb-4 text-gray-800 leading-relaxed">
-                The most comprehensive resource for AI girlfriend insights, virtual relationship guidance, and digital companionship expertise.
-                Our blog covers everything from the psychology behind AI relationships to the cutting-edge technology that makes virtual love possible.
+                This blog explains how AI companions work, from the psychology of why people bond with them to the
+                technology behind the replies. Articles are written by the Kruthika.fun team and follow our{' '}
+                <a href="/legal/editorial-policy" className="text-blue-700 hover:text-blue-900 underline">editorial policy</a>.
               </p>
               <p className="text-gray-800 leading-relaxed">
                 Ready to experience AI love yourself?{' '}
                 <a href="/maya-chat" className="text-blue-700 hover:text-blue-900 font-bold underline">
-                  Chat with Kruthika — Your AI Girlfriend Now
+                  Start a free chat with Kruthika
                 </a>
               </p>
             </div>
+            <ShareLinks path="/blog" text="Guides to AI companionship from Kruthika.fun" className="mt-6" />
+            <AiDisclaimer className="mt-4" />
           </div>
         </div>
       </main>
@@ -373,13 +378,17 @@ function PostCard({ post, featured }: { post: UnifiedPost; featured?: boolean })
       {/* Featured image (DB posts only) */}
       {isRenderableImageSrc(post.featured_image) && (
         <div className={`relative overflow-hidden ${featured ? 'h-56 sm:h-64' : 'h-44'}`}>
+          {/* Explicit width/height (instead of `fill`) so the browser can reserve
+              space; the first card is the likely LCP element, so it loads
+              eagerly with high priority instead of loading="lazy". */}
           <Image
             src={post.featured_image}
             alt={post.title}
-            fill
+            width={featured ? 1024 : 640}
+            height={featured ? 576 : 352}
             sizes="(max-width: 640px) 100vw, 50vw"
-            className="object-cover"
-            loading="lazy"
+            className="h-full w-full object-cover"
+            {...(featured ? { priority: true } : { loading: 'lazy' as const })}
             unoptimized={!isOptimizableImageSrc(post.featured_image)}
           />
         </div>
@@ -388,12 +397,16 @@ function PostCard({ post, featured }: { post: UnifiedPost; featured?: boolean })
       <div className="p-4 sm:p-5 flex flex-col flex-1">
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2.5 flex-wrap">
           <div className="flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
-            {post.datePublished ? new Date(post.datePublished).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''}
+            <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+            {post.datePublished ? (
+              <time dateTime={post.datePublished}>
+                {new Date(post.datePublished).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
+              </time>
+            ) : null}
           </div>
           <div className="flex items-center gap-1">
-            <User className="h-3.5 w-3.5" />
-            {post.author}
+            <User className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>By {post.author}</span>
           </div>
           {post.category && (
             <div className="flex items-center gap-1">
@@ -425,9 +438,8 @@ function PostCard({ post, featured }: { post: UnifiedPost; featured?: boolean })
         <a
           href={`/blog/${post.slug}`}
           className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium mt-auto"
-          aria-label={`Read full article: ${post.title}`}
         >
-          Read article <ArrowRight className="h-3.5 w-3.5" />
+          Read the full article<span className="sr-only">: {post.title}</span> <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </a>
       </div>
     </article>

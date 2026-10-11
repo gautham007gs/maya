@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     canonical: `${BASE_URL}/legal/terms`,
     languages: { 'x-default': `${BASE_URL}/legal/terms` },
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   openGraph: {
     title: 'Terms of Service | Kruthika AI Girlfriend',
     description: 'Acceptable use, AI disclaimers, eligibility and liability terms for Kruthika.fun.',

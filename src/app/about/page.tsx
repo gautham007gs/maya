@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
   title: fitSeoTitle('About Kruthika — Free AI Girlfriend Platform'),
-  description: fitMetaDescription('Learn about Kruthika.fun — free AI girlfriend platform. Our mission: emotional support and companionship through advanced AI, trusted by 1M+ users worldwide.'),
+  description: fitMetaDescription('Learn about Kruthika.fun — free AI girlfriend platform. Our mission: friendly, private AI companionship that anyone can use for free.'),
   alternates: {
     canonical: `${BASE_URL}/about`,
     languages: { 'x-default': `${BASE_URL}/about` },
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   openGraph: {
     title: 'About Kruthika — AI Girlfriend Platform | Mission & Team',
@@ -127,7 +127,7 @@ export default function AboutPage() {
                 Global Reach
               </h2>
               <p className="text-lg mb-4">
-                Trusted by over <strong>1M+ users worldwide</strong>, Kruthika serves people in:
+                Kruthika is available worldwide, with dedicated pages for visitors in:
               </p>
               <ul className="list-disc list-inside space-y-2 text-lg">
                 <li>🇺🇸 United States</li>

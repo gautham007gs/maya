@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Source_Serif_4 } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -49,13 +49,25 @@ const sourceSerif = Source_Serif_4({
 
 const getBaseUrl = () => process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
+// Single viewport tag, emitted by Next.js. A hand-written <meta name="viewport">
+// in <head> used to sit next to the one Next injects by default, producing two
+// viewport tags (SEO audit: "Single Viewport Tag").
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: {
     default: 'Best Free AI Girlfriend 2026 | Kruthika — No Sign Up',
     template: '%s | Kruthika'
   },
-  description: fitMetaDescription(`Chat with Kruthika — free AI girlfriend, no sign up, no paywall. Hindi & English. ${FREE_CHAT_TAGLINE} Loved by 1M+ users.`),
+  description: fitMetaDescription(`Chat with Kruthika — free AI girlfriend, no sign up, no paywall. Hindi & English. ${FREE_CHAT_TAGLINE}`),
   // NOTE: deliberately NO `keywords` meta — Google has ignored
   // <meta name="keywords"> for over a decade and documents it as unsupported
   // (developers.google.com/search/docs/crawling-indexing/special-tags).
@@ -75,7 +87,6 @@ export const metadata: Metadata = {
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
-      'max-snippet': -1,
     },
   },
   category: 'technology',
@@ -98,7 +109,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Best Free AI Girlfriend 2026 | Kruthika',
-    description: 'Free AI girlfriend, no account needed. Hindi & English, 24/7 emotional support. Join 1M+ users.',
+    description: 'Free AI girlfriend, no account needed. Hindi & English, 24/7 emotional support.',
     images: [`${getBaseUrl()}/opengraph-image`],
     creator: '@kruthikafun',
     site: '@kruthikafun',
@@ -140,7 +151,6 @@ export default async function RootLayout({
             #25d366 header chrome (was #0d8043, mismatched — SEO audit #14) */}
         <meta name="theme-color" content="#25d366" />
         {cspNonce && <meta name="csp-nonce" content={cspNonce} />}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover, interactive-widget=resizes-content" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         {/* apple-mobile-web-app-title: sets the icon label when saved to iOS home screen.
@@ -166,6 +176,8 @@ export default async function RootLayout({
 
         {/* RSS Feed */}
         <link rel="alternate" type="application/rss+xml" title="Kruthika AI Girlfriend Blog" href="/rss.xml" />
+        {/* AI/GEO discoverability: point LLM crawlers at the machine-readable site summary. */}
+        <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
 
         {/* rel="me" — verifies brand identity with social profiles for Google's
             Knowledge Graph entity recognition and E-E-A-T signals (AEO-05). */}

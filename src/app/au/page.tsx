@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MessageCircle, Heart, Star, ArrowRight, MapPin, Users, Zap } from 'lucide-react';
+import { MessageCircle, Heart, Star, ArrowRight, MapPin, Zap } from 'lucide-react';
 import BannerAdDisplay from '@/components/chat/BannerAdDisplay';
 import GeoCrossLinks from '@/components/geo/GeoCrossLinks';
 import { GeoLocalSection } from '@/components/GeoLocalSection';
@@ -11,11 +11,11 @@ const geo = COUNTRY_GEO_META['/au'];
 
 export const metadata: Metadata = {
   title: 'Best AI Girlfriend Australia 2026',
-  description: 'Top AI girlfriend for Australian users. Join 50K+ Aussies enjoying free 24/7 emotional support and genuine companionship. No sign-up required.',
+  description: 'Top AI girlfriend for Australian users. Enjoy free 24/7 emotional support and genuine companionship. No sign-up required.',
   alternates: getCountryHreflangAlternates('/au'),
   openGraph: {
     title: 'Best AI Girlfriend Australia 2026 — Free, No Sign Up',
-    description: 'Top AI girlfriend for Aussies. 50K+ Australians enjoy free 24/7 emotional support and fair dinkum conversations with Kruthika.',
+    description: 'Top AI girlfriend for Aussies. Enjoy free 24/7 emotional support and fair dinkum conversations with Kruthika.',
     url: `${BASE_URL}/au`,
     siteName: 'Kruthika AI Girlfriend',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika AI Girlfriend for Australian users' }],
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   other: {
     'geo.region':    geo.region,
@@ -51,7 +51,7 @@ const pageSchema = {
       '@id': `${BASE_URL}/au`,
       url: `${BASE_URL}/au`,
       name: 'Best AI Girlfriend Australia 2026 — Free Virtual Companion for Aussies',
-      description: 'Top AI girlfriend for Aussies. Join 50K+ Australian users enjoying free 24/7 emotional support, fair dinkum conversations, and genuine companionship with Kruthika.',
+      description: 'Top AI girlfriend for Aussies. Enjoy free 24/7 emotional support, fair dinkum conversations, and genuine companionship with Kruthika.',
       inLanguage: 'en-AU',
       audience: {
         '@type': 'Audience',
@@ -104,8 +104,6 @@ export default function AustraliaPage() {
               <ArrowRight className="h-6 w-6" />
             </Link>
             <div className="flex flex-wrap justify-center gap-5 mt-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><Users className="h-4 w-4" />50K+ Aussie Users</span>
-              <span className="flex items-center gap-1"><Star className="h-4 w-4 text-yellow-500" />4.7/5 Rating</span>
               <span className="flex items-center gap-1"><Zap className="h-4 w-4 text-green-500" />100% Free</span>
             </div>
           </div>

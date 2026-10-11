@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { ChatStructuredData } from './structured-data';
 import AIGirlfriendFAQSchema from './ai-girlfriend-faq-schema';
+import TrustLinks from '@/components/trust/TrustLinks';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import { AppProductSchemas } from '@/components/StructuredData';
 import { fitMetaDescription, fitSeoTitle } from '@/lib/seo-standards';
@@ -26,7 +27,6 @@ export const metadata: Metadata = {
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
-      'max-snippet': -1,
     },
   },
   openGraph: {
@@ -117,6 +117,10 @@ export default function MayaChatLayout({ children }: { children: ReactNode }) {
 
       {children}
       </main>
+      {/* Crawlable contact / terms / editorial-policy / social links. The chat
+          screen hides the global footer, so without this block those E-E-A-T
+          signals are absent from the page's HTML. Sits below the fold. */}
+      <TrustLinks path="/maya-chat" />
     </>
   );
 }

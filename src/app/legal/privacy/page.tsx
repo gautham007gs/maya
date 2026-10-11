@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     canonical: `${BASE_URL}/legal/privacy`,
     languages: { 'x-default': `${BASE_URL}/legal/privacy` },
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   openGraph: {
     title: 'Privacy Policy | Kruthika AI Girlfriend',
     description: 'How Kruthika.fun collects, uses and protects your data — GDPR, CCPA and DPDP aligned.',

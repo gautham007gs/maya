@@ -56,9 +56,9 @@ export default async function SiteFooter() {
 
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-4">
-            <h3 className="text-base font-bold text-foreground mb-3">
+            <h2 className="text-base font-bold text-foreground mb-3">
               Kruthika<span className="text-[#25d366]">.</span>fun
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-xs">
               {t.footerTagline}
             </p>
@@ -97,12 +97,12 @@ export default async function SiteFooter() {
 
           {/* Chat */}
           <nav aria-label={t.footerChatHeading} className="lg:col-span-2">
-            <h3 className={colHeadCls}>{t.footerChatHeading}</h3>
+            <h2 className={colHeadCls}>{t.footerChatHeading}</h2>
             <ul className="space-y-2.5">
               <li><Link href="/" className={linkCls}>{t.footerHome}</Link></li>
               <li><Link href="/maya-chat" className={linkCls}>{t.chatWithKruthika}</Link></li>
               <li><Link href="/faq" className={linkCls}>{t.footerFaq}</Link></li>
-              <li><Link href="/status" rel="nofollow" className={linkCls}>Status</Link></li>
+              <li><Link href="/status" className={linkCls}>Status</Link></li>
               <li><Link href="/about" className={linkCls}>{t.footerAboutUs}</Link></li>
               <li><Link href="/contact" className={linkCls}>{t.footerContact}</Link></li>
             </ul>
@@ -110,7 +110,7 @@ export default async function SiteFooter() {
 
           {/* Blog */}
           <nav aria-label={t.footerBlogHeading} className="lg:col-span-2">
-            <h3 className={colHeadCls}>{t.footerBlogHeading}</h3>
+            <h2 className={colHeadCls}>{t.footerBlogHeading}</h2>
             <ul className="space-y-2.5">
               <li><Link href="/blog" className={linkCls}>{t.footerAllArticles}</Link></li>
               <li><Link href="/blog/author" className={linkCls}>{t.footerOurAuthors}</Link></li>
@@ -126,7 +126,7 @@ export default async function SiteFooter() {
 
           {/* Legal */}
           <nav aria-label={t.footerLegalHeading} className="lg:col-span-2">
-            <h3 className={colHeadCls}>{t.footerLegalHeading}</h3>
+            <h2 className={colHeadCls}>{t.footerLegalHeading}</h2>
             <ul className="space-y-2.5">
               <li><Link href="/legal/privacy" className={linkCls}>{t.privacyPolicy}</Link></li>
               <li><Link href="/legal/terms" className={linkCls}>{t.termsOfService}</Link></li>
@@ -138,7 +138,7 @@ export default async function SiteFooter() {
 
           {/* Region */}
           <div className="lg:col-span-2">
-            <h3 className={colHeadCls}>{t.footerAlsoAvailableIn}</h3>
+            <h2 className={colHeadCls}>{t.footerAlsoAvailableIn}</h2>
             <div className="space-y-3">
               <CountrySwitcher compact initialCountry={country} />
               <LanguageSwitcher compact />
@@ -148,7 +148,7 @@ export default async function SiteFooter() {
 
         {/* ── Geo landing pages — full internal-link mesh for SEO ──────────── */}
         <nav aria-label={t.footerAlsoAvailableIn} className="border-t border-border pt-8 pb-8">
-          <h3 className={colHeadCls}>{t.footerAlsoAvailableIn}</h3>
+          <h2 className={colHeadCls}>{t.footerAlsoAvailableIn}</h2>
           <ul className="flex flex-wrap gap-2">
             {GEO_LINKS.map(({ flag, name, path }) => (
               <li key={path}>

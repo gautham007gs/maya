@@ -5,7 +5,7 @@ import { getCategories, getPostsByCategory } from '@/lib/blog-db';
 import type { DbBlogCategory, DbBlogPost } from '@/lib/blog-db';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import { serializeJsonLd } from '@/lib/blog-jsonld';
-import { fitMetaDescription, fitSeoTitle } from '@/lib/seo-standards';
+import { composeCategoryDescription, fitSeoTitle } from '@/lib/seo-standards';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = fitSeoTitle(category.seo_title || `${category.name} — AI Girlfriend Blog`);
-  const description = fitMetaDescription(
-    category.seo_description || category.description,
-    `Explore Kruthika.fun articles about ${category.name}, AI companionship, and emotional support.`,
-  );
+  const description = composeCategoryDescription(category.name, category.description, category.seo_description);
   const url = `${baseUrl}/blog/category/${category.slug}`;
+  // A category with no published articles is a thin page: keep it out of the
+  // index (it can still be followed) until it has content.
+  let hasPosts = true;
+  try { hasPosts = (await getPostsByCategory(slug)).length > 0; } catch { /* keep default */ }
   return {
     title,
     description,
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: url,
       languages: { 'x-default': url },
     },
-    robots: { index: true, follow: true },
+    robots: hasPosts ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       title,
       description,
@@ -75,7 +76,7 @@ function PostCard({ post }: { post: DbBlogPost }) {
         <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4 flex-1">{post.excerpt || post.seo_description}</p>
       )}
       <a href={`/blog/${post.slug}`} className="inline-flex items-center gap-1.5 text-primary font-medium text-sm hover:underline mt-auto">
-        Read article <ArrowRight className="h-3.5 w-3.5" />
+        Read the full article<span className="sr-only">: {post.title}</span> <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
       </a>
     </article>
   );
@@ -134,20 +135,19 @@ export default async function BlogCategoryPage({ params }: Props) {
               <Tag className="h-4 w-4" /> Topic Category
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">
-              {category.name} — AI Companion Articles
+              {category.name}: AI Companion Articles
             </h1>
-            <p className="max-w-2xl mx-auto text-base text-muted-foreground leading-relaxed mb-4">
-              {category.description || `In-depth analysis, research guides, and expert practical advice exploring ${category.name} in modern conversational AI and emotional companionship.`}
-            </p>
-            <p className="max-w-2xl mx-auto text-sm text-muted-foreground/90 leading-relaxed">
-              Explore our curated resources written by relationship psychology specialists and AI researchers. Learn how conversational agents adapt to human emotions, support personal wellbeing, and foster healthy digital interactions.
+            <p className="max-w-2xl mx-auto text-base text-muted-foreground leading-relaxed">
+              {category.description
+                ? `${category.description.replace(/[.\s]+$/, '')}.`
+                : `Guides and explainers about ${category.name.toLowerCase()} and everyday life with an AI companion.`}
             </p>
           </header>
           {posts.length > 0 ? (
             <div className="grid sm:grid-cols-2 gap-5">{posts.map(post => <PostCard key={post.slug} post={post} />)}</div>
           ) : (
             <div className="rounded-xl border border-dashed border-border p-12 text-center text-muted-foreground">
-              No published articles are available in this category yet.
+              No articles in this category yet. Browse the <a href="/blog" className="underline hover:text-primary">full blog</a> in the meantime.
             </div>
           )}
         </div>

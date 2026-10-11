@@ -11,7 +11,7 @@ const geo = COUNTRY_GEO_META['/in'];
 
 export const metadata: Metadata = {
   title: 'Best AI Girlfriend India 2026',
-  description: 'Kruthika — India ki best free AI girlfriend. Hindi, English aur Hinglish mein baat karo. 5 lakh+ Indian users, koi sign-up nahi, bilkul free.',
+  description: 'Kruthika — India ki best free AI girlfriend. Hindi, English aur Hinglish mein baat karo. koi sign-up nahi, bilkul free.',
   alternates: getCountryHreflangAlternates('/in'),
   openGraph: {
     title: 'Best AI Girlfriend India 2026 — Free, Hindi & English',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   other: {
     'geo.region': geo.region,
@@ -143,8 +143,6 @@ export default function IndiaPage() {
             {/* Social proof */}
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {[
-                { val: '5 Lakh+', label: 'Indian users' },
-                { val: '4.7/5', label: 'User rating' },
                 { val: 'Free', label: 'Always' },
                 { val: '24/7', label: 'Available' },
               ].map(({ val, label }) => (
@@ -254,7 +252,7 @@ export default function IndiaPage() {
           {/* Final CTA */}
           <div className="text-center bg-gradient-to-r from-orange-500/10 via-pink-500/10 to-green-500/10 border border-orange-200/50 rounded-2xl p-10">
             <h2 className="text-2xl sm:text-3xl font-bold mb-3">India Ka Best AI Companion — Free!</h2>
-            <p className="text-muted-foreground mb-7 text-base max-w-xl mx-auto">5 lakh se zyada Indian users Kruthika se roz baat karte hain. Aaj hi join karo — bilkul free.</p>
+            <p className="text-muted-foreground mb-7 text-base max-w-xl mx-auto">Hindi, English aur Hinglish mein kabhi bhi baat karo. Aaj hi shuru karo — bilkul free.</p>
             <a href="/maya-chat"
               className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 via-pink-600 to-purple-600 text-white px-9 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
               <MessageCircle className="h-5 w-5" />

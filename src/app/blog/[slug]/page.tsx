@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           ? { index: false, follow: false }
           : {
               index: true, follow: true, nocache: false,
-              googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
+              googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large' },
             },
         openGraph: {
           title: ogTitle,

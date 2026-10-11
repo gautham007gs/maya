@@ -111,7 +111,7 @@ export function buildGeoPageMetadata(slug: string): Metadata {
       site: '@kruthikafun',
       creator: '@kruthikafun',
     },
-    robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
+    robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
     other: {
       'geo.region': geo.region,
       'geo.placename': geo.placename,
