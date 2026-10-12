@@ -1,7 +1,7 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MessageCircle, Heart, Star, ArrowRight, MapPin, Users, Zap } from 'lucide-react';
+import { MessageCircle, Heart, Star, ArrowRight, MapPin, Zap } from 'lucide-react';
 import BannerAdDisplay from '@/components/chat/BannerAdDisplay';
 import GeoCrossLinks from '@/components/geo/GeoCrossLinks';
 import { GeoLocalSection } from '@/components/GeoLocalSection';
@@ -12,11 +12,11 @@ const geo = COUNTRY_GEO_META['/us'];
 
 export const metadata: Metadata = {
   title: 'Best AI Girlfriend USA 2026',
-  description: 'Top-rated AI girlfriend for USA users. 200K+ Americans enjoy free 24/7 emotional support and authentic companionship with Kruthika. No sign-up required.',
+  description: 'An AI girlfriend for USA users. Enjoy free 24/7 emotional support and authentic companionship with Kruthika. No sign-up required.',
   alternates: getCountryHreflangAlternates('/us'),
   openGraph: {
     title: 'Best AI Girlfriend USA 2026 — Free, No Sign Up',
-    description: 'Top-rated AI girlfriend for USA users. 200K+ Americans enjoy free 24/7 emotional support with Kruthika.',
+    description: 'An AI girlfriend for USA users. Enjoy free 24/7 emotional support with Kruthika.',
     url: `${BASE_URL}/us`,
     siteName: 'Kruthika AI Girlfriend',
     images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Kruthika AI Girlfriend for USA users' }],
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   other: {
     'geo.region':    geo.region,
@@ -52,7 +52,7 @@ const pageSchema = {
       '@id': `${BASE_URL}/us`,
       url: `${BASE_URL}/us`,
       name: 'Best AI Girlfriend USA 2026 — Free Virtual Companion for Americans',
-      description: 'Top-rated AI girlfriend for USA users. Join 200K+ Americans enjoying free 24/7 emotional support, realistic conversations, and authentic companionship with Kruthika.',
+      description: 'An AI girlfriend for USA users. Enjoy free 24/7 emotional support, realistic conversations, and authentic companionship with Kruthika.',
       inLanguage: 'en-US',
       audience: {
         '@type': 'Audience',
@@ -111,14 +111,6 @@ export default function USAPage() {
             </div>
 
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>200K+ USA Users</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span>4.8/5 Rating</span>
-              </div>
               <div className="flex items-center gap-1">
                 <Zap className="h-4 w-4 text-green-500" />
                 <span>100% Free</span>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     canonical: `${BASE_URL}/legal/cookie-policy`,
     languages: { 'x-default': `${BASE_URL}/legal/cookie-policy` },
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   openGraph: {
     title: 'Cookie Policy | Kruthika AI Girlfriend',
     description: 'Every storage key explained: purpose, category and duration.',

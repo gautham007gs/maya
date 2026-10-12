@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     canonical: `${BASE_URL}/legal/accessibility`,
     languages: { 'x-default': `${BASE_URL}/legal/accessibility` },
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   openGraph: {
     title: 'Accessibility Statement | Kruthika AI Girlfriend',
     description: 'WCAG 2.1 AA conformance status, implemented measures and feedback channels.',

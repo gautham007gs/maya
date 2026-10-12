@@ -51,7 +51,7 @@ export function AvatarProfileDialog({
               variant="ghost"
               size="icon"
               onClick={closeDialog}
-              className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 h-9 w-9 rounded-full p-0"
+              className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 h-11 w-11 rounded-full p-0"
               aria-label="Back"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -64,7 +64,7 @@ export function AvatarProfileDialog({
             variant="ghost"
             size="icon"
             onClick={closeDialog}
-            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 h-8 w-8 rounded-full p-0"
+            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 h-11 w-11 rounded-full p-0"
             aria-label="Close"
           >
             <X className="h-4 w-4" />

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     canonical: `${BASE_URL}/legal/editorial-policy`,
     languages: { 'x-default': `${BASE_URL}/legal/editorial-policy` },
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   openGraph: {
     title: 'Editorial Policy | Kruthika AI Girlfriend',
     description: 'Human-reviewed standards, AI transparency and corrections policy for our blog.',

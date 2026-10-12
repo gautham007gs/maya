@@ -295,7 +295,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           size="icon"
           onClick={() => setShowEmojiPicker((prev) => !prev)}
           className={cn(
-            "self-end shrink-0 h-10 w-10 rounded-full transition-colors",
+            "self-end shrink-0 h-11 w-11 min-h-[44px] min-w-[44px] rounded-full transition-colors",
             showEmojiPicker
               ? "text-[#25d366] bg-emerald-50 dark:bg-emerald-950/40"
               : "text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
@@ -312,6 +312,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={t.messagePlaceholder}
+            aria-label={t.messagePlaceholder}
             className="flex-1 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent custom-scrollbar py-2 text-[15px] leading-tight max-h-20 min-h-[2rem] placeholder:text-gray-500 text-gray-900 dark:text-gray-100"
             style={{ transition: 'height 60ms ease', height: `${TEXTAREA_MIN_HEIGHT}px` }}
             rows={1}
@@ -329,7 +330,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             variant="ghost"
             size="icon"
             type="button"
-            className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 self-end shrink-0 h-9 w-9 p-0"
+            className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 self-end shrink-0 h-11 w-11 min-h-[44px] min-w-[44px] p-0"
             onClick={() => fileInputRef.current?.click()}
             aria-label={t.uploadImage}
           >

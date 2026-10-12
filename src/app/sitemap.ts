@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getCategories, getPublishedPosts } from '@/lib/blog-db'
+import { getCategories, getPostsByCategory, getPublishedPosts } from '@/lib/blog-db'
 import { getAllAuthorSlugsAsync } from '@/lib/authors-db'
 import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES } from '@/lib/locales'
 import { COUNTRY_HREFLANG_MAP } from '@/lib/hreflang'
@@ -58,11 +58,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch { /* DB not available */ }
   try {
     const categories = await getCategories()
-    categoryUrls = categories.map(category => ({
-      url: `${baseUrl}/blog/category/${category.slug}`,
-      changeFrequency: 'weekly' as const,
-      priority: 0.78,
+    // Empty categories are noindexed (thin pages), so they stay out of the sitemap too.
+    const withPosts = await Promise.all(categories.map(async category => {
+      try { return (await getPostsByCategory(category.slug)).length > 0 ? category : null; }
+      catch { return category; }
     }))
+    categoryUrls = withPosts
+      .filter((category): category is NonNullable<typeof category> => category !== null)
+      .map(category => ({
+        url: `${baseUrl}/blog/category/${category.slug}`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.78,
+      }))
   } catch { /* DB not available */ }
 
   // Author index page

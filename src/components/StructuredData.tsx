@@ -47,6 +47,9 @@ const organizationSchema = {
   },
   "description": "Chat with Kruthika, a 23yo Indian girl who loves chatting, providing companionship and emotional support.",
   "foundingDate": "2024",
+  ...(process.env.NEXT_PUBLIC_BUSINESS_ADDRESS
+    ? { "address": { "@type": "PostalAddress", "streetAddress": process.env.NEXT_PUBLIC_BUSINESS_ADDRESS } }
+    : {}),
   "areaServed": ["US", "GB", "CA", "AU", "IN", "BR", "ID", "MY", "PH", "NG", "PK", "AE", "Worldwide"],
   "contactPoint": [
     {
@@ -64,6 +67,7 @@ const organizationSchema = {
 };
 
 const websiteSchema = {
+  "@context": "https://schema.org",
   "@type": "WebSite",
   "@id": `${baseUrl}#website`,
   "name": "Chat with Kruthika",
@@ -147,19 +151,23 @@ const howToSchema = {
   ]
 };
 
-// Sitewide: describes the publisher/site itself in a single unified @graph.
+// Sitewide: Organization + WebSite, each as its own typed JSON-LD block
+// (top-level @context + @type). They used to be wrapped in a single "@graph"
+// object with no top-level @type, which SEO validators flag as "schema
+// missing @type". The shared @id values still link the two entities.
 // Mounted once, in the root layout.
-const sitewideGraph = {
-  '@context': 'https://schema.org',
-  '@graph': [organizationSchema, websiteSchema],
-};
-
 export default function StructuredData() {
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(sitewideGraph) }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+    </>
   );
 }
 

@@ -56,15 +56,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         size="icon" 
         onClick={() => navigateTo('/')} 
         className="text-[#3b4a54] hover:bg-[#f0f2f5] mr-1 rounded-full transition-colors active:bg-[#d9dfe3]" 
-        style={{ width: '40px', height: '40px', flexShrink: 0 }}
+        style={{ width: '44px', height: '44px', flexShrink: 0 }}
         aria-label={t.exitChat}
       >
         <ArrowLeft className="h-5 w-5" />
       </Button>
       <button 
         onClick={onAvatarClick} 
-        className="flex items-center focus:outline-none rounded-full mr-2.5 transition-opacity active:opacity-70"
-        style={{ width: '42px', height: '42px', flexShrink: 0 }}
+        className="flex items-center justify-center focus:outline-none rounded-full mr-2 transition-opacity active:opacity-70"
+        style={{ width: '44px', height: '44px', flexShrink: 0 }}
         key={`avatar-header-wrapper-${aiName}-${avatarUrlToUse || 'default_wrapper_key_ch'}`}
         aria-label={`${t.viewContact}: ${aiName}`}
       >
@@ -105,7 +105,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         className="text-[#3b4a54] dark:text-[#aebac1] hover:bg-[#f0f2f5] rounded-full transition-colors active:bg-[#d9dfe3] ml-1" 
         aria-label={t.videoCall} 
         onClick={onVideoClick}
-        style={{ width: '40px', height: '40px', flexShrink: 0 }}
+        style={{ width: '44px', height: '44px', flexShrink: 0 }}
       >
         <Video className="h-[22px] w-[22px]" />
       </Button>
@@ -115,7 +115,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         className="text-[#3b4a54] dark:text-[#aebac1] hover:bg-[#f0f2f5] rounded-full transition-colors active:bg-[#d9dfe3]" 
         aria-label={t.voiceCall} 
         onClick={onCallClick}
-        style={{ width: '40px', height: '40px', flexShrink: 0 }}
+        style={{ width: '44px', height: '44px', flexShrink: 0 }}
       >
         <Phone className="h-[22px] w-[22px]" />
       </Button>
@@ -127,7 +127,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             size="icon" 
             className="text-[#3b4a54] dark:text-[#aebac1] hover:bg-[#f0f2f5] rounded-full transition-colors active:bg-[#d9dfe3]" 
             aria-label={t.settings}
-            style={{ width: '40px', height: '40px', flexShrink: 0 }}
+            style={{ width: '44px', height: '44px', flexShrink: 0 }}
           >
             <EllipsisVertical className="h-[20px] w-[20px]" />
           </Button>
