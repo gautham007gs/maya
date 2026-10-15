@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useAdSettings } from '@/contexts/AdSettingsContext';
-import { shouldSkipPopupAds } from '@/lib/instagram-browser';
 import { analyticsTracker } from '@/lib/analytics-tracker';
 import { stampCspNonce } from '@/lib/csp-nonce';
 import type { AdSettings } from '@/types';
@@ -75,11 +74,6 @@ const SocialBarAdDisplay: React.FC<SocialBarAdDisplayProps> = ({ page }) => {
     if (!adSettings.adsEnabledGlobally) { log('skipped: ads disabled globally (admin master toggle)'); return; }
     if (socialBarInjectedGlobally) { log('skipped: already injected elsewhere on this page'); return; }
     if (adSettings[PLACEMENT_TOGGLE[page]] === false) { log(`skipped: disabled for this page (${PLACEMENT_TOGGLE[page]})`); return; }
-
-    // Interstitial (our Social Bar configuration) relies on popup-style APIs
-    // that don't behave reliably inside Instagram/Facebook/TikTok in-app
-    // browsers — same reason Popunder is skipped there.
-    if (shouldSkipPopupAds()) { log('skipped: in-app browser detected (Instagram/Facebook/TikTok)'); return; }
 
     if (typeof navigator !== 'undefined' && ((navigator as any).webdriver === true || /Lighthouse|Chrome-Lighthouse|PageSpeed|Headless/i.test(navigator.userAgent || ''))) {
       log('skipped: synthetic audit environment');

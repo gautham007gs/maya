@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAdSettings } from '@/contexts/AdSettingsContext';
-import { shouldSkipPopupAds } from '@/lib/instagram-browser';
 import { analyticsTracker } from '@/lib/analytics-tracker';
 import { stampCspNonce } from '@/lib/csp-nonce';
 import { isAdvertisingAllowed } from '@/lib/consent';
@@ -33,7 +32,6 @@ const GlobalAdScripts: React.FC = () => {
     if (!isClient || isLoadingAdSettings || !adSettings || !adsAllowed) return;
     if (typeof document === 'undefined') return;
     if (adSettings.adsKillSwitch || !adSettings.adsEnabledGlobally) return;
-    if (shouldSkipPopupAds()) return;
     if (typeof navigator !== 'undefined' && ((navigator as any).webdriver === true || /Lighthouse|Chrome-Lighthouse|PageSpeed|Headless/i.test(navigator.userAgent || ''))) return;
 
     const injectScript = (scriptCode: string, networkName: string, globalFlag: () => boolean, setGlobalFlag: () => void) => {

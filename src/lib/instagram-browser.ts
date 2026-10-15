@@ -5,9 +5,10 @@
  *  iOS  — window.open() returns null (blocked), no popunder, limited third-party cookies
  *  Android — Chrome Custom Tabs, more permissive, window.open may open in Chrome
  *
- * Adsterra formats compatible with Instagram IAB:
- *  ✅ Native banners, Standard banners, Social Bar, Direct Link (via anchor)
- *  ❌ Popunder, Interstitial (use window.open / popup APIs)
+ * Adsterra formats may behave differently in an in-app browser because the
+ * host browser controls popups and third-party storage. The ad components do
+ * not use this detector to suppress delivery: the network/browser decides
+ * whether a particular popup-style format can open.
  */
 
 export type IABPlatform = 'ios' | 'android' | 'other';
@@ -97,7 +98,7 @@ export function openAdUrl(url: string): void {
   }
 }
 
-/** True if the current environment should skip popunder/popup ad scripts */
+/** Retained for callers that need to know about popup-capable browser limits. */
 export function shouldSkipPopupAds(): boolean {
-  return isInstagramBrowser() || isInAppBrowser();
+  return false;
 }
