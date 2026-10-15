@@ -40,13 +40,13 @@ export interface Author {
 export const DEFAULT_AUTHOR: Author = {
   slug: 'editorial-team',
   name: 'Editorial Team',
-  title: 'AI Companionship & Relationship Psychology Specialists',
-  bio: 'The Kruthika AI Editorial Team is a multidisciplinary group of conversational AI researchers, relationship psychologists, and digital wellness practitioners delivering fact-checked, empathetic, and expert-reviewed guides.',
+  title: 'Kruthika.fun editorial team',
+  bio: 'The Kruthika.fun editorial team writes guides about AI companions, privacy and safe use. Articles follow our Editorial Policy, including how AI tools are used, how we check facts and how we correct mistakes.',
   avatar: '/kruthika-avatar.svg',
-  expertise: ['Conversational AI', 'Relationship Psychology', 'Virtual Companionship', 'Digital Wellbeing', 'Emotional AI'],
+  expertise: ['AI companions', 'Privacy and safety', 'Product guides'],
   location: 'Bengaluru, India',
-  seo_title: 'Kruthika AI Editorial Team — Expert Guides & Research',
-  seo_description: 'Fact-checked articles and relationship insights published by the Kruthika AI Editorial Team.',
+  seo_title: 'Kruthika.fun Editorial Team — Articles and Guides',
+  seo_description: 'Guides about AI companions, privacy and safe use, written by the Kruthika.fun editorial team under our public editorial policy.',
 };
 
 // Default fallback list includes the authoritative Editorial Team

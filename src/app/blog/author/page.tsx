@@ -9,8 +9,8 @@ export const revalidate = 3600;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
-  title: fitSeoTitle('Meet Our Blog Authors — AI & Psychology Experts'),
-  description: fitMetaDescription('Meet the expert writers and researchers behind the Kruthika AI Girlfriend blog — covering AI companionship, psychology, technology, and virtual relationships.'),
+  title: fitSeoTitle('Blog Authors — Who Writes Kruthika.fun'),
+  description: fitMetaDescription('Who writes the Kruthika.fun blog: our editorial team and contributors, and how we cover AI companions, privacy and safe use.'),
   alternates: {
     canonical: `${BASE_URL}/blog/author`,
     // English-only page → x-default self (global default), matching the
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   openGraph: {
-    title: 'Meet Our Blog Authors — AI & Psychology Experts',
-    description: 'Meet the expert writers and researchers behind the Kruthika.fun blog.',
+    title: 'Blog Authors — Who Writes Kruthika.fun',
+    description: 'Who writes the Kruthika.fun blog and how we work.',
     url: `${BASE_URL}/blog/author`,
     siteName: 'Kruthika AI Girlfriend',
     locale: 'en_US',
@@ -77,7 +77,7 @@ export default async function AuthorsIndexPage() {
           {/* Header */}
           <header className="mb-10 text-center">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
-              Meet Our Authors — AI &amp; Psychology Experts
+              Our Authors
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Expert writers and researchers covering AI companionship, psychology, virtual relationships,

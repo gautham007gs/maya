@@ -1,5 +1,5 @@
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
-import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES } from '@/lib/locales';
+import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES, isIndexableCountryPath } from '@/lib/locales';
 
 /**
  * Maps geo route → IANA language+region subtag.
@@ -25,6 +25,7 @@ export function getHreflangAlternates(currentPath: string) {
   };
 
   for (const [path, code] of Object.entries(COUNTRY_HREFLANG_MAP)) {
+    if (!isIndexableCountryPath(path)) continue; // noindex pages never belong in an hreflang cluster
     languages[code] = `${BASE_URL}${path}`;
   }
 
@@ -37,12 +38,14 @@ export function getHreflangAlternates(currentPath: string) {
  */
 export function getCountryHreflangAlternates(countryPath: string) {
   const canonical = `${BASE_URL}${countryPath}`;
+  if (!isIndexableCountryPath(countryPath)) return { canonical };
 
   const languages: Record<string, string> = {
     'x-default': `${BASE_URL}/`,
   };
 
   for (const [path, code] of Object.entries(COUNTRY_HREFLANG_MAP)) {
+    if (!isIndexableCountryPath(path)) continue; // noindex pages never belong in an hreflang cluster
     languages[code] = `${BASE_URL}${path}`;
   }
 

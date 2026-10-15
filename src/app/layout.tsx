@@ -64,10 +64,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: {
-    default: 'Best Free AI Girlfriend 2026 | Kruthika — No Sign Up',
+    default: 'Free AI Companion Chat | Kruthika',
     template: '%s | Kruthika'
   },
-  description: fitMetaDescription(`Chat with Kruthika — free AI girlfriend, no sign up, no paywall. Hindi & English. ${FREE_CHAT_TAGLINE}`),
+  description: fitMetaDescription(`Chat with Kruthika, a browser-based AI companion. No account is required to begin. ${FREE_CHAT_TAGLINE}`),
   // NOTE: deliberately NO `keywords` meta — Google has ignored
   // <meta name="keywords"> for over a decade and documents it as unsupported
   // (developers.google.com/search/docs/crawling-indexing/special-tags).
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Editorial Team' }],
   creator: 'Kruthika.fun',
   publisher: 'Kruthika.fun',
-  applicationName: 'Kruthika AI Girlfriend',
+  applicationName: 'Kruthika AI Companion',
   referrer: 'origin-when-cross-origin',
   robots: {
     index: true,
@@ -91,8 +91,8 @@ export const metadata: Metadata = {
   },
   category: 'technology',
   openGraph: {
-    title: 'Best Free AI Girlfriend 2026 | Kruthika — No Sign Up',
-    description: 'Chat with Kruthika — free AI girlfriend, no sign up, no paywall. Hindi & English, 24/7 emotional support.',
+    title: 'Free AI Companion Chat | Kruthika',
+    description: 'Start a browser-based AI companion conversation with Kruthika. No account is required to begin.',
     url: getBaseUrl(),
     siteName: 'Kruthika AI Girlfriend',
     images: [
@@ -100,7 +100,7 @@ export const metadata: Metadata = {
         url: `${getBaseUrl()}/opengraph-image`,
         width: 1200,
         height: 630,
-        alt: 'Kruthika AI Girlfriend - Free Virtual Companion for Emotional Support',
+        alt: 'Kruthika AI companion chat',
       },
     ],
     locale: 'en_US',
@@ -108,8 +108,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Best Free AI Girlfriend 2026 | Kruthika',
-    description: 'Free AI girlfriend, no account needed. Hindi & English, 24/7 emotional support.',
+    title: 'Free AI Companion Chat | Kruthika',
+    description: 'Browser-based AI companion chat with no account required to begin.',
     images: [`${getBaseUrl()}/opengraph-image`],
     creator: '@kruthikafun',
     site: '@kruthikafun',

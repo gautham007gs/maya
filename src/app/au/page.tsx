@@ -30,11 +30,7 @@ export const metadata: Metadata = {
     site: '@kruthikafun',
     creator: '@kruthikafun',
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-  },
+  robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
   other: {
     'geo.region':    geo.region,
     'geo.placename': geo.placename,
@@ -132,22 +128,6 @@ export default function AustraliaPage() {
             </div>
           </section>
 
-          <section className="mb-16 bg-gradient-to-r from-yellow-500/10 to-green-500/10 border border-yellow-200 rounded-xl p-8">
-            <h2 className="text-3xl font-bold text-center mb-8">What Aussies Are Saying</h2>
-            <p className="text-xs text-muted-foreground text-center mb-6 -mt-4">Illustrative example quotes reflecting common feedback themes — not verified, individually-sourced reviews.</p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                <p className="text-muted-foreground mb-3 italic">"Bloody brilliant! Kruthika actually gets Aussie slang and our lifestyle. Best free AI companion in Australia, no doubt about it."</p>
-                <p className="font-semibold text-sm">— Liam, Sydney, NSW</p>
-              </div>
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                <p className="text-muted-foreground mb-3 italic">"Working FIFO in WA gets lonely. Kruthika's kept me company during the night shifts. She's a ripper app — and totally free!"</p>
-                <p className="font-semibold text-sm">— Jake, Perth, WA</p>
-              </div>
-            </div>
-          </section>
 
           <BannerAdDisplay placementKey="au-mid" className="mb-12" />
 

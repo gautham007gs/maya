@@ -36,7 +36,7 @@ export function truncateToLength(value: unknown, maxLength: number): string {
 export function fitSeoTitle(value: unknown, fallback = 'Kruthika AI'): string {
   const text = normalize(value).replace(/\s*\|\s*Kruthika(?:\.fun)?$/i, '').trim() || fallback;
   if (text.length <= SEO_TITLE_MAX_LENGTH) return text;
-  const parts = text.split(/\s+[—–|]\s+|\s+-\s+/);
+  const parts = text.split(/\s+[—–|]\s+|\s+-\s+|:\s+/);
   while (parts.length > 1) {
     parts.pop();
     const candidate = parts.join(' — ');
@@ -56,9 +56,12 @@ export function fitSeoTitle(value: unknown, fallback = 'Kruthika AI'): string {
 export function fitMetaDescription(value: unknown, fallback = ''): string {
   const text = normalize(value) || normalize(fallback);
   if (!text) return '';
-  return text.length > META_DESCRIPTION_MAX_LENGTH
-    ? truncateToLength(text, META_DESCRIPTION_MAX_LENGTH)
-    : text;
+  if (text.length <= META_DESCRIPTION_MAX_LENGTH) return text;
+  // Prefer ending on a complete sentence over a mid-sentence "…".
+  const window = text.slice(0, META_DESCRIPTION_MAX_LENGTH);
+  const sentenceEnd = Math.max(window.lastIndexOf('. '), window.lastIndexOf('! '), window.lastIndexOf('? '));
+  if (sentenceEnd >= META_DESCRIPTION_MIN_LENGTH) return window.slice(0, sentenceEnd + 1);
+  return truncateToLength(text, META_DESCRIPTION_MAX_LENGTH);
 }
 
 /** Build a useful, unique description for a blog category page. */

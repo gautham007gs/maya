@@ -130,20 +130,6 @@ export default function GeoPageTemplate({ config }: { config: GeoPageConfig }) {
             </div>
           </section>
 
-          {/* Testimonials — honest illustrative framing (never fake review schema) */}
-          <section className="mb-16 bg-gradient-to-r from-red-500/10 to-green-500/10 border border-red-200 rounded-xl p-8">
-            <h2 className="text-3xl font-bold text-center mb-8">{config.testimonialsTitle}</h2>
-            <p className="text-xs text-muted-foreground text-center mb-6 -mt-4">Illustrative example quotes reflecting common feedback themes — not verified, individually-sourced reviews.</p>
-            <div className="grid md:grid-cols-2 gap-6">
-              {config.quotes.map(({ text, name }) => (
-                <div key={name} className="bg-white rounded-lg p-6 shadow-sm">
-                  <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                  <p className="text-muted-foreground mb-3 italic">&ldquo;{text}&rdquo;</p>
-                  <p className="font-semibold text-sm">— {name}</p>
-                </div>
-              ))}
-            </div>
-          </section>
 
           <BannerAdDisplay placementKey={`${config.code}-mid`} className="mb-12" />
 

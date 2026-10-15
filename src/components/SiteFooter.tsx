@@ -19,7 +19,7 @@ import CountrySwitcher from '@/components/CountrySwitcher';
 import { headers } from 'next/headers';
 import {
   COUNTRY_CONFIGS,
-  SUPPORTED_COUNTRIES,
+  INDEXABLE_COUNTRIES,
   detectCountryFromRequest,
   isCountryCode,
 } from '@/lib/locales';
@@ -28,7 +28,7 @@ import { getTranslations, isSupportedLang } from '@/lib/translations';
 const currentYear = new Date().getFullYear();
 
 /** All geo landing pages, alphabetical — single source of truth in locales.ts. */
-const GEO_LINKS = SUPPORTED_COUNTRIES
+const GEO_LINKS = INDEXABLE_COUNTRIES
   .map(code => COUNTRY_CONFIGS[code])
   .sort((a, b) => a.name.localeCompare(b.name));
 

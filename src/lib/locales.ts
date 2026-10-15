@@ -60,6 +60,25 @@ export const COUNTRY_CONFIGS: Record<CountryCode, CountryConfig> = {
 };
 
 export const SUPPORTED_COUNTRIES = Object.keys(COUNTRY_CONFIGS) as CountryCode[];
+
+/**
+ * Countries whose landing page has genuinely distinct, verified content and is
+ * allowed in search results. The other pages stay reachable for visitors
+ * (switcher, redirects) but are `noindex, follow`, left out of the sitemap and
+ * hreflang cluster, so Google does not see near-duplicate templates or
+ * unsupported regional claims. Add a country only with product-specific,
+ * evidence-backed local content.
+ */
+export const INDEXABLE_COUNTRIES: readonly CountryCode[] = ['IN'];
+
+export function isIndexableCountry(code: CountryCode): boolean {
+  return INDEXABLE_COUNTRIES.includes(code);
+}
+
+export function isIndexableCountryPath(path: string): boolean {
+  const code = getCountryFromPath(path);
+  return code ? isIndexableCountry(code) : false;
+}
 export const COUNTRY_COOKIE = 'kruthika_country';
 export const LANGUAGE_COOKIE = 'kruthika_ui_lang';
 

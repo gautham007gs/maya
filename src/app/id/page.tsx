@@ -29,11 +29,7 @@ export const metadata: Metadata = {
     site: '@kruthikafun',
     creator: '@kruthikafun',
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-  },
+  robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
   other: {
     'geo.region':    geo.region,
     'geo.placename': geo.placename,

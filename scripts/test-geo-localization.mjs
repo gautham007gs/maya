@@ -78,25 +78,26 @@ section('Local copy (GEO_LOCAL_CONTENT)');
   }
 }
 
-section('Sitemap wiring');
+section('Sitemap and indexing wiring');
 {
   const sm = read('src/app/sitemap.ts');
-  for (const c of Object.values(countries)) {
-    const urlOk = sm.includes(`url: \`\${baseUrl}/${c.slug}\``);
-    const altOk = sm.includes(`'${c.locale}', '/${c.slug}')`);
-    if (urlOk && altOk) ok(`/${c.slug} listed with ${c.locale} alternates`);
-    else bad(`sitemap: ${c.slug} url=${urlOk} alternates(${c.locale})=${altOk}`);
-  }
-}
-
-section('robots.txt allow-lists');
-{
   const rb = read('src/app/robots.ts');
-  for (const c of Object.values(countries)) {
-    const hits = (rb.match(new RegExp(`'/${c.slug}'`, 'g')) || []).length;
-    if (hits >= 5) ok(`/${c.slug} allowed in ${hits} rule blocks`);
-    else bad(`robots: /${c.slug} only in ${hits} blocks (expected ≥5)`);
+  const indexableMatch = localesSrc.match(/INDEXABLE_COUNTRIES:\s*readonly CountryCode\[\]\s*=\s*\[([^\]]*)\]/);
+  const indexableCodes = indexableMatch
+    ? [...indexableMatch[1].matchAll(/'([A-Z]{2})'/g)].map(match => match[1])
+    : [];
+  if (indexableCodes.length && indexableCodes.every(code => countries[code])) {
+    ok(`indexability allow-list has ${indexableCodes.length} valid market(s): ${indexableCodes.join(', ')}`);
+  } else {
+    bad('INDEXABLE_COUNTRIES must include at least one valid registered market');
   }
+  const sitemapFiltersIndexability = sm.includes('SUPPORTED_COUNTRIES.filter(isIndexableCountry)')
+    && sm.includes('isIndexableCountryPath(path)');
+  if (sitemapFiltersIndexability) ok('sitemap includes only indexable markets and matching hreflang alternates');
+  else bad('sitemap does not filter country entries and hreflang alternates by indexability');
+  const robotsUsesRegistry = rb.includes('SUPPORTED_COUNTRIES.map(code => COUNTRY_CONFIGS[code].path)');
+  if (robotsUsesRegistry) ok('robots.txt derives reachable regional paths from the country registry');
+  else bad('robots.txt does not derive regional paths from the country registry');
 }
 
 section('llms.txt coverage');
@@ -202,5 +203,4 @@ if (fail > 0) {
 }
 console.log(BASE ? '  🌍 Geo cluster LIVE-VERIFIED across all markets.' : '  🌍 Static audit clean. Run with --url http://localhost:5000 for live crawl.');
 process.exit(0);
-
 

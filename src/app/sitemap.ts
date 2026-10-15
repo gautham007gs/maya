@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { getCategories, getPostsByCategory, getPublishedPosts } from '@/lib/blog-db'
 import { getAllAuthorSlugsAsync } from '@/lib/authors-db'
-import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES } from '@/lib/locales'
+import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES, isIndexableCountry, isIndexableCountryPath } from '@/lib/locales'
 import { COUNTRY_HREFLANG_MAP } from '@/lib/hreflang'
 
 // Dynamic real-time sitemap: reflects live DB posts and admin mutations instantly.
@@ -18,7 +18,7 @@ function buildGeoAlternates(baseUrl: string, selfPath?: string) {
     languages: {
       'x-default': `${baseUrl}/`,
       ...Object.fromEntries(
-        Object.entries(COUNTRY_HREFLANG_MAP).map(([path, code]) => [code, `${baseUrl}${path}`]),
+        Object.entries(COUNTRY_HREFLANG_MAP).filter(([path]) => isIndexableCountryPath(path)).map(([path, code]) => [code, `${baseUrl}${path}`]),
       ),
       ...(selfPath
         ? Object.fromEntries(
@@ -104,7 +104,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.98,
     },
-    ...SUPPORTED_COUNTRIES.map((code) => {
+    ...SUPPORTED_COUNTRIES.filter(isIndexableCountry).map((code) => {
       const country = COUNTRY_CONFIGS[code];
       return {
         url: `${baseUrl}${country.path}`,

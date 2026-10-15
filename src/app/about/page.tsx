@@ -6,7 +6,7 @@ import { fitMetaDescription, fitSeoTitle } from '@/lib/seo-standards';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
-  title: fitSeoTitle('About Kruthika — Free AI Girlfriend Platform'),
+  title: fitSeoTitle('About Kruthika.fun — Free AI Companion'),
   description: fitMetaDescription('Learn about Kruthika.fun — free AI girlfriend platform. Our mission: friendly, private AI companionship that anyone can use for free.'),
   alternates: {
     canonical: `${BASE_URL}/about`,

@@ -98,7 +98,7 @@ describe('crawler-facing surfaces include every geo route', () => {
   const llms = read(path.join('src', 'app', 'llms.txt', 'route.ts'));
 
   it('sitemap.ts derives geo URLs and alternates from the registry', () => {
-    assert.ok(sitemap.includes('SUPPORTED_COUNTRIES.map'), 'sitemap must iterate the country registry');
+    assert.ok(sitemap.includes('SUPPORTED_COUNTRIES.filter(isIndexableCountry).map'), 'sitemap must iterate the indexable country registry');
     assert.ok(sitemap.includes('COUNTRY_CONFIGS[code]'), 'sitemap must use country configuration');
     assert.ok(sitemap.includes('buildGeoAlternates(baseUrl, country.path)'), 'sitemap must attach per-page alternates');
     assert.ok(sitemap.includes('new Map(entries.map'), 'sitemap must deduplicate canonical URLs');

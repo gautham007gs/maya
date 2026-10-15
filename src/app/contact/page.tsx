@@ -8,7 +8,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
   title: fitSeoTitle('Contact Us — Kruthika AI Girlfriend Support'),
-  description: fitMetaDescription('Get in touch with Kruthika.fun support team. We\'re here to help with questions about our free AI girlfriend platform, privacy concerns, or technical issues.'),
+  description: fitMetaDescription('Get in touch with Kruthika.fun support team. Help with questions, privacy concerns or technical issues.'),
   alternates: {
     canonical: `${BASE_URL}/contact`,
     languages: { 'x-default': `${BASE_URL}/contact` },

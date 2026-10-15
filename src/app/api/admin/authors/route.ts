@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
             display_name: 'Editorial Team',
             slug: 'editorial-team',
             designation: 'AI Companionship & Relationship Psychology Specialists',
-            bio: 'The Kruthika AI Editorial Team is a multidisciplinary group of conversational AI researchers, relationship psychologists, and digital wellness practitioners delivering fact-checked, empathetic, and expert-reviewed guides.',
+            bio: 'The Kruthika.fun editorial team writes guides about AI companions, privacy and safe use. Articles follow our Editorial Policy, including how AI tools are used, how we check facts and how we correct mistakes.',
             avatar_url: '/kruthika-avatar.svg',
             status: 'active',
             role: 'editor',

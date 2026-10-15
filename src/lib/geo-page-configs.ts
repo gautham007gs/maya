@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { COUNTRY_CONFIGS } from './locales';
+import { COUNTRY_CONFIGS, isIndexableCountry } from './locales';
 import { getCountryHreflangAlternates, COUNTRY_GEO_META } from './hreflang';
 import { fitMetaDescription, fitSeoTitle } from './seo-standards';
 
@@ -111,7 +111,9 @@ export function buildGeoPageMetadata(slug: string): Metadata {
       site: '@kruthikafun',
       creator: '@kruthikafun',
     },
-    robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
+    robots: country && isIndexableCountry(country.code)
+      ? { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } }
+      : { index: false, follow: true, googleBot: { index: false, follow: true } },
     other: {
       'geo.region': geo.region,
       'geo.placename': geo.placename,

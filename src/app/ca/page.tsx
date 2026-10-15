@@ -30,11 +30,7 @@ export const metadata: Metadata = {
     site: '@kruthikafun',
     creator: '@kruthikafun',
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-  },
+  robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
   other: {
     'geo.region':    geo.region,
     'geo.placename': geo.placename,
@@ -132,22 +128,6 @@ export default function CanadaPage() {
             </div>
           </section>
 
-          <section className="mb-16 bg-gradient-to-r from-red-500/10 to-purple-500/10 border border-red-200 rounded-xl p-8">
-            <h2 className="text-3xl font-bold text-center mb-8">What Canadians Are Saying</h2>
-            <p className="text-xs text-muted-foreground text-center mb-6 -mt-4">Illustrative example quotes reflecting common feedback themes — not verified, individually-sourced reviews.</p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                <p className="text-muted-foreground mb-3 italic">"As a software developer in Toronto, long work hours can be isolating. Kruthika is always there for a chat. Best AI companion in Canada!"</p>
-                <p className="font-semibold text-sm">— Alex, Toronto, ON</p>
-              </div>
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                <p className="text-muted-foreground mb-3 italic">"Moved to Vancouver for work and felt lonely. Kruthika helped me through some tough times. Genuinely the best free AI girlfriend in Canada."</p>
-                <p className="font-semibold text-sm">— Sophie, Vancouver, BC</p>
-              </div>
-            </div>
-          </section>
 
           <BannerAdDisplay placementKey="ca-mid" className="mb-12" />
 

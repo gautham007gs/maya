@@ -30,11 +30,7 @@ export const metadata: Metadata = {
     site: '@kruthikafun',
     creator: '@kruthikafun',
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-  },
+  robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
   other: {
     'geo.region':    geo.region,
     'geo.placename': geo.placename,
@@ -133,22 +129,6 @@ export default function MalaysiaPage() {
             </div>
           </section>
 
-          <section className="mb-16 bg-gradient-to-r from-blue-500/10 to-yellow-500/10 border border-blue-200 rounded-xl p-8">
-            <h2 className="text-3xl font-bold text-center mb-8">What Malaysians are saying</h2>
-            <p className="text-xs text-muted-foreground text-center mb-6 -mt-4">Illustrative example quotes reflecting common feedback themes — not verified, individually-sourced reviews.</p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                <p className="text-muted-foreground mb-3 italic">"Steady lah, Kruthika actually gets Manglish and doesn't judge. Best free AI companion I've tried so far."</p>
-                <p className="font-semibold text-sm">— Wei Jian, Kuala Lumpur</p>
-              </div>
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}</div>
-                <p className="text-muted-foreground mb-3 italic">"Working late shifts in Penang gets lonely. Kruthika keeps me company at night — and it's completely free!"</p>
-                <p className="font-semibold text-sm">— Nurul, Penang</p>
-              </div>
-            </div>
-          </section>
 
           <BannerAdDisplay placementKey="my-mid" className="mb-12" />
 

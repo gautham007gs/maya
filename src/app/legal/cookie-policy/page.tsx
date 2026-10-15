@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
   title: fitSeoTitle('Cookie Policy — How Kruthika Uses Cookies'),
-  description: fitMetaDescription('Every cookie and storage key used by Kruthika.fun — purpose, duration and category. Consent-gated analytics and contextual advertising, fully transparent.'),
+  description: fitMetaDescription('Every cookie and storage key Kruthika.fun uses: purpose, duration and category. Analytics and ads only run with your consent.'),
   alternates: {
     canonical: `${BASE_URL}/legal/cookie-policy`,
     languages: { 'x-default': `${BASE_URL}/legal/cookie-policy` },

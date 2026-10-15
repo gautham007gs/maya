@@ -49,6 +49,41 @@ const securityHeaders = [
 ];
 
 // Build the list of allowed dev origins — always include localhost variants.
+// Country landing pages that are noindex — keep in sync with INDEXABLE_COUNTRIES
+// in src/lib/locales.ts (indexable: in, us, uk).
+const NOINDEX_GEO_LIST = ["au","ca","ae","ng","my","ph","pk","br","id","de","fr","it","es","mx","jp","kr","sa","tr","vn","nl","pl","se","th","sg","za","ar","bd"];
+const NOINDEX_GEO = NOINDEX_GEO_LIST.map((c) => c + "$").join("|");
+const NOINDEX_GEO_ALT = NOINDEX_GEO_LIST.join("|");
+
+const publicPageHeaders = (robotsValue) => [
+          ...securityHeaders.filter(
+            (h) => h.key !== "Cache-Control" && h.key !== "X-Robots-Tag",
+          ),
+          // Was `max-age=3600` — returning visitors could see a full hour-old
+          // page (including layout/ad changes) with zero network check, which
+          // is exactly the "site looks old on my device" complaint. `max-age=0`
+          // still lets the browser keep a cached copy but forces it to
+          // revalidate (conditional GET / 304) on every navigation, so a
+          // fresh deploy is visible immediately while still being fast when
+          // nothing changed server-side.
+          {
+            key: "Cache-Control",
+            value:
+              "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400",
+          },
+          ...(robotsValue ? [{ key: "X-Robots-Tag", value: robotsValue }] : []),
+          // CORS: wildcard (*) and credentials:true are mutually exclusive per spec.
+          // Same-origin requests (the normal case for this app) do not need CORS
+          // headers at all. Only set them on /api routes where cross-origin callers
+          // are expected; see the /api block above.
+          { key: "Access-Control-Allow-Origin", value: baseUrl },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+];
+
 const allowedDevOrigins = ["127.0.0.1", "localhost","172.28.45.102"];
 
 /** @type {import('next').NextConfig} */
@@ -217,44 +252,22 @@ const nextConfig = {
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
       {
+        // Country pages that are noindex (see INDEXABLE_COUNTRIES in
+        // src/lib/locales.ts) must not also be sent "index, follow".
+        source: "/:geo(" + NOINDEX_GEO_ALT + ")",
+        headers: publicPageHeaders("noindex, follow"),
+      },
+      {
         // Excludes /api, /admin, /lite, /diagnostics, and _next/ — those have their own
         // header blocks above and must not also receive this block's public/
         // cacheable Cache-Control or "index, follow" X-Robots-Tag (SEO audit
         // #3, #4). Everything else (real, public, indexable pages) matches
         // as before.
-        source: "/((?!api/|admin/|lite/|diagnostics/|status$|status/|_next/).*)",
-        headers: [
-          ...securityHeaders.filter(
-            (h) => h.key !== "Cache-Control" && h.key !== "X-Robots-Tag",
-          ),
-          // Was `max-age=3600` — returning visitors could see a full hour-old
-          // page (including layout/ad changes) with zero network check, which
-          // is exactly the "site looks old on my device" complaint. `max-age=0`
-          // still lets the browser keep a cached copy but forces it to
-          // revalidate (conditional GET / 304) on every navigation, so a
-          // fresh deploy is visible immediately while still being fast when
-          // nothing changed server-side.
-          {
-            key: "Cache-Control",
-            value:
-              "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400",
-          },
-          {
-            key: "X-Robots-Tag",
-            value:
-              "index, follow, max-image-preview:large, max-video-preview:-1",
-          },
-          // CORS: wildcard (*) and credentials:true are mutually exclusive per spec.
-          // Same-origin requests (the normal case for this app) do not need CORS
-          // headers at all. Only set them on /api routes where cross-origin callers
-          // are expected; see the /api block above.
-          { key: "Access-Control-Allow-Origin", value: baseUrl },
-          { key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Content-Type, Authorization",
-          },
-        ],
+        source: "/((?!api/|admin/|lite/|diagnostics/|status$|status/|_next/|" + NOINDEX_GEO + ").*)",
+        // No X-Robots-Tag here on purpose: each page declares its own robots meta
+        // (index/noindex). A blanket "index" header contradicted pages that are
+        // intentionally noindex, e.g. empty blog categories. Default = index.
+        headers: publicPageHeaders(null),
       },
     ];
   },

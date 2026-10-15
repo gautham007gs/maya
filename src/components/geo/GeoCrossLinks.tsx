@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES } from '@/lib/locales';
+import { COUNTRY_CONFIGS, INDEXABLE_COUNTRIES } from '@/lib/locales';
 
 /**
  * Geo cross-links — SINGLE SOURCE OF TRUTH.
@@ -11,7 +11,7 @@ import { COUNTRY_CONFIGS, SUPPORTED_COUNTRIES } from '@/lib/locales';
  * locales.ts automatically adds it to every page's cross-links.
  */
 export default function GeoCrossLinks({ currentPath }: { currentPath: string }) {
-  const others = SUPPORTED_COUNTRIES
+  const others = INDEXABLE_COUNTRIES
     .map(code => COUNTRY_CONFIGS[code])
     .filter(config => config.path !== currentPath);
 

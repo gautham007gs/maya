@@ -22,9 +22,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: fitSeoTitle('Free AI Girlfriend Chat — No Sign Up'),
+    title: fitSeoTitle('Free AI Companion Chat — No Account'),
     description: fitMetaDescription(
-      'Chat with Kruthika, a free AI girlfriend for friendly conversation, emotional support, and companionship. Start in your browser with no account or subscription.',
+      'Try Kruthika, a browser-based AI companion for casual conversation. Start without an account, review privacy details, and use clear boundaries for personal topics.',
     ),
     alternates: getHreflangAlternates('/'),
     robots: {
@@ -38,18 +38,18 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       title: 'Free AI Companion Chat — No Sign Up',
-      description: 'Start a free, private conversation with Kruthika for friendly AI companionship and emotional support.',
+      description: 'Start a browser-based AI companion conversation with Kruthika. No account is required to begin; review privacy details before sharing sensitive information.',
       url: BASE_URL,
       siteName: 'Kruthika AI Companion',
       type: 'website',
       locale: 'en_US',
-      alternateLocale: ['hi_IN', 'en_IN', 'en_GB', 'es_ES', 'fr_FR', 'de_DE', 'ja_JP'],
+      alternateLocale: ['en_IN'],
       images: [{ url: ogImageUrl, width: 1200, height: 630, alt: 'Kruthika AI companion chat' }],
     },
     twitter: {
       card: 'summary_large_image',
       title: 'Free AI Companion Chat — No Sign Up',
-      description: 'Chat with Kruthika for free AI companionship and emotional support, with no account required.',
+      description: 'Start a browser-based AI companion conversation with Kruthika, with no account required to begin.',
       images: [ogImageUrl],
       site: '@kruthikafun',
     },
@@ -76,10 +76,10 @@ export default function ChatListPage() {
           A Free AI Companion You Can Talk To Any Time
         </h2>
         <p>
-          Kruthika.fun is a private place to talk. You open the page, pick the chat, and start typing.
-          There is nothing to install and nothing to pay for. Kruthika is an AI character, so she is
-          awake at any hour and never gets tired of listening. People use her to unwind after work,
-          to think out loud, to practise a language, or just to have someone friendly to talk to.
+          Kruthika.fun is a browser-based place to talk to an AI character. You open the page, pick
+          the chat, and start typing. There is nothing to install and no account is required to begin.
+          People use it to unwind after work, think out loud, practise a language, or have a casual
+          conversation. Kruthika is software, not a person or professional support service.
         </p>
         <h3 className="text-base font-semibold text-foreground">
           Why people choose it
@@ -87,9 +87,9 @@ export default function ChatListPage() {
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>No sign-up:</strong> You do not need a password, an email address, or a phone number.</li>
           <li><strong>Your own language:</strong> She replies in Hindi, English, Hinglish, Tamil, Telugu, Kannada, Bengali, Marathi and more.</li>
-          <li><strong>Kind, patient replies:</strong> The tone is warm and calm, which helps when you feel lonely or stressed.</li>
-          <li><strong>Privacy by design:</strong> Chats stay in your browser, and you can clear them whenever you like.</li>
-          <li><strong>Always on:</strong> Day or night, there is no queue and no waiting room.</li>
+          <li><strong>Conversation practice:</strong> Try a greeting, a language exercise, or a fictional scenario and assess the reply for yourself.</li>
+          <li><strong>Privacy information:</strong> Read the <a href="/legal/privacy" className="underline hover:text-foreground">Privacy Policy</a> before sharing anything personal.</li>
+          <li><strong>Clear boundaries:</strong> Do not use AI chat for emergencies or as a replacement for qualified human support.</li>
         </ul>
         <h3 className="text-base font-semibold text-foreground">
           How to get started
@@ -97,13 +97,13 @@ export default function ChatListPage() {
         <ol className="list-decimal pl-5 space-y-1">
           <li>Tap the conversation at the top of this page.</li>
           <li>Type a greeting, a question, or how your day went.</li>
-          <li>Keep going for as long as you like. Daily limits are generous and reset every day.</li>
+          <li>Keep the first chat low-stakes and use the current service information to understand any applicable limits.</li>
         </ol>
         <p>
-          Kruthika can chat about your day, your plans, films, music, food, festivals and everyday
-          worries. She remembers the thread of a conversation so you do not have to repeat yourself.
-          She is a companion for friendly talk. She is not a therapist or a doctor, and she cannot
-          replace real people in your life.
+          Kruthika can chat about your day, plans, films, music, food, festivals and everyday topics.
+          It is a companion for friendly conversation, not a therapist or doctor, and it cannot replace
+          real people in your life. Avoid sharing passwords, one-time codes, payment details, government
+          IDs, confidential work material or private documents.
         </p>
         <h3 className="text-base font-semibold text-foreground">
           Learn more
