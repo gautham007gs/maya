@@ -1,0 +1,88 @@
+# ==============================================================================
+# .gitignore — Kruthika AI
+# Rule of thumb: if it contains secrets, credentials, user data, or is
+# machine-generated at runtime, it does NOT belong in git.
+# ==============================================================================
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+/node_modules/
+
+# ── Next.js build output ──────────────────────────────────────────────────────
+/.next/
+/out/
+/next-env.d.ts
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── ENVIRONMENT FILES (CRITICAL — real secrets live here) ────────────────────
+# Ignore EVERYTHING env-shaped: .env, .env.local, .env.production,
+# .env.development, .env.staging … one wrong catch-all here has leaked more
+# production databases than any other git mistake.
+# NOTE: .gitignore does NOT support inline comments — rules must stand alone.
+.env
+.env.*
+# Whitelist the sanitised template so it IS committed (keep this AFTER the
+# ignore patterns above):
+!.env.example
+
+# ── SECRETS / CERTIFICATES / KEYS ─────────────────────────────────────────────
+# TLS certificates & private keys (never commit real certs)
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.p12
+/certs/
+/localhost.*
+
+# Cloud/vendor credential files
+auth.json
+.gcloud/
+.aws/
+.vercel
+
+# ── DATABASE BACKUPS & DUMPS ──────────────────────────────────────────────────
+# Produced by scripts/backup-db.mjs and manual mysqldump runs.
+/backups/
+*.sql.gz
+*.sql.gz.enc
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+
+# ── RUNTIME DATA ──────────────────────────────────────────────────────────────
+# Media uploads written by the app (also persisted in MySQL via media_blobs)
+/.cms-media/
+/public/uploads/
+# Generated Lighthouse audit reports
+/lighthouse-reports/
+# Local helper / ops scripts that may contain server-specific paths
+*.local.ps1
+# Lighthouse audit helpers — these embed admin password hash + salt!
+.lh-*
+.lh-server.log
+
+# ── LOGS & TEMP FILES ─────────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+*.tmp
+/tmp-*.png
+/tmp-*.jpg
+/tmp-*.webp
+
+# ── OS / EDITOR CRUFT ─────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.history/
+*.swp

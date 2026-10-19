@@ -1,0 +1,1 @@
+export { PerformanceOptimizer, debounce, throttle } from '@/lib/performance';

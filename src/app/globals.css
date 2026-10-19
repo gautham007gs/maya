@@ -1,0 +1,628 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Enhanced Prose Styles for Blog Posts */
+.prose-content {
+  @apply text-base sm:text-lg text-foreground/90;
+  line-height: 1.9;
+  max-width: 70ch;
+  margin: 0 auto;
+}
+
+.prose-content h1,
+.prose-content h2,
+.prose-content h3,
+.prose-content h4 {
+  @apply font-bold text-foreground mt-10 mb-4;
+}
+
+.prose-content h1 {
+  @apply text-3xl sm:text-4xl leading-tight;
+}
+
+.prose-content h2 {
+  @apply text-2xl sm:text-3xl;
+}
+
+.prose-content h3 {
+  @apply text-xl sm:text-2xl;
+}
+
+.prose-content h4 {
+  @apply text-lg sm:text-xl;
+}
+
+.prose-content p {
+  @apply mb-6;
+  line-height: 1.95;
+}
+
+.prose-content ul,
+.prose-content ol {
+  @apply mb-6 ml-6 space-y-2;
+}
+
+.prose-content li {
+  @apply leading-relaxed;
+}
+
+.prose-content strong {
+  @apply font-semibold text-foreground;
+}
+
+.prose-content a {
+  @apply text-primary underline decoration-primary/40 hover:text-primary/90;
+}
+
+.prose-content blockquote {
+  @apply border-l-4 border-primary/60 pl-6 py-4 my-8 italic bg-primary/5 rounded-r-2xl text-foreground/80;
+}
+
+.prose-content code {
+  @apply bg-muted px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose-content img {
+  @apply rounded-3xl shadow-lg;
+}
+
+/* CMS tables use a stable, portable table contract rather than inline styles.
+   This keeps the editor, preview, and published article visually identical. */
+.prose-content table,
+.cms-editor-surface table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 2rem 0;
+  overflow: hidden;
+  border: 1px solid #d8dee9;
+  border-radius: 0.75rem;
+  background: #fff;
+  font-size: 0.95em;
+}
+
+.prose-content th,
+.prose-content td,
+.cms-editor-surface th,
+.cms-editor-surface td {
+  min-width: 7rem;
+  padding: 0.75rem 0.9rem;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.prose-content th,
+.cms-editor-surface th {
+  background: #f5f3ff;
+  color: #312e81;
+  font-weight: 700;
+}
+
+.prose-content tr:nth-child(even) td,
+.cms-editor-surface tbody tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.prose-content tr > :last-child,
+.cms-editor-surface tr > :last-child {
+  border-right: 0;
+}
+
+.prose-content tr:last-child > *,
+.cms-editor-surface tr:last-child > * {
+  border-bottom: 0;
+}
+
+.prose-content [data-indent="1"],
+.cms-editor-surface [data-indent="1"] { margin-left: 2rem; }
+.prose-content [data-indent="2"],
+.cms-editor-surface [data-indent="2"] { margin-left: 4rem; }
+.prose-content [data-indent="3"],
+.cms-editor-surface [data-indent="3"] { margin-left: 6rem; }
+.prose-content [data-indent="4"],
+.cms-editor-surface [data-indent="4"] { margin-left: 8rem; }
+
+/* Formatting emitted by the CMS visual editor. Keep these semantic so they
+   also work when an article is pasted into another renderer. */
+.prose-content [data-align="center"] {
+  text-align: center;
+}
+
+.prose-content [data-align="right"] {
+  text-align: right;
+}
+
+.prose-content figure[data-type="video"] {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 2rem 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #111827;
+}
+
+.prose-content figure[data-type="video"] iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+}
+
+.article-excerpt {
+  @apply text-xl sm:text-2xl font-medium text-foreground/75 leading-relaxed border-l-4 border-primary/40 pl-4 mb-8;
+}
+
+/* Modern WhatsApp-style clean background - light and eye-friendly */
+.bg-grid-pattern {
+  background: #EFEAE2;
+  background-image: 
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+}
+
+/* Modern WhatsApp-style subtle pattern */
+.chat-container {
+  position: relative;
+}
+
+.chat-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h80v80H0z' fill='%23EFEAE2'/%3E%3Cpath d='M40 40m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0' fill='%23D1D7DB' fill-opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Native ad styling in chat */
+.native-ad-container {
+  min-height: 80px;
+  width: 100%;
+}
+
+.native-ad-content {
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px;
+}
+
+.native-ad-content * {
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.native-ad-content img {
+  border-radius: 6px;
+  max-height: 200px;
+  max-width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.native-ad-content a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.native-ad-content a:hover {
+  opacity: 0.8;
+}
+
+.native-ad-content p,
+.native-ad-content div,
+.native-ad-content span {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin: 0.25rem 0;
+  color: inherit;
+}
+
+.native-ad-content .ad-title,
+.native-ad-content h1,
+.native-ad-content h2,
+.native-ad-content h3 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: inherit;
+}
+
+.native-ad-content .ad-description {
+  color: rgb(107 114 128);
+  font-size: 0.8rem;
+}
+
+.native-ad-content iframe {
+  max-width: 100%;
+  border: none;
+  border-radius: 6px;
+}
+
+.native-ad-content script {
+  display: none;
+}
+
+/* Critical CSS for Fast Loading */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2) format('woff2');
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: Inter, -apple-system, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  content-visibility: auto;
+}
+
+.chat-header {
+  height: 64px;
+  background: #F0F2F5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+main {
+  min-height: calc(100vh - 64px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile viewport fixes */
+@supports (-webkit-touch-callout: none) {
+  .fixed.inset-0 {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Explicitly map chat-specific CSS variables for Tailwind */
+.chat-message-user {
+  @apply bg-chat-bg-user text-chat-text-user;
+}
+
+.chat-message-ai {
+  @apply bg-chat-bg-ai text-chat-text-ai;
+}
+
+.chat-message-default {
+  @apply bg-chat-bg-default;
+}
+
+.chat-header {
+  @apply bg-chat-header-bg text-chat-header-text;
+}
+
+.chat-input {
+  @apply bg-chat-input-bg;
+}
+
+/* Modern WhatsApp-style chat colors - light theme */
+.chat-bg-user {
+  background-color: #D9FDD3; /* Modern WhatsApp light green */
+  box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);
+}
+.chat-text-user {
+  color: #111B21; /* Modern WhatsApp dark text */
+}
+.chat-bg-ai {
+  background-color: #FFFFFF; /* White for AI messages */
+  box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);
+}
+.chat-text-ai {
+  color: #111B21; /* Modern WhatsApp dark text */
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   RESPONSIVE + ACCESSIBILITY FOUNDATION (2026 audit)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Visible keyboard focus everywhere (WCAG 2.4.7) ────────────────
+   Restyles rather than removes the focus ring; high-contrast outline
+   that survives every background used in the app. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid hsl(var(--ring) / 0.9);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+  /* Inputs keep their themed ring but gain an outer focus edge too */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.7);
+    outline-offset: 1px;
+  }
+}
+
+/* Skip-to-content link — visually hidden until focused (first tab stop). */
+.skip-to-content {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 0.75rem 0.75rem;
+  transition: top 150ms ease-in;
+}
+.skip-to-content:focus-visible {
+  top: 0;
+}
+
+/* ── 2. Horizontal-overflow guards ────────────────────────────────────
+   Nothing may push the document wider than the viewport on any device.
+   Elements that legitimately need sideways scrolling opt back in via
+   .overflow-x-auto (tables, code blocks, tab strips). */
+html, body {
+  overflow-x: clip; /* modern, doesn't create a scroll container */
+  -webkit-text-size-adjust: 100%; /* stop iOS landscape font inflation */
+  text-size-adjust: 100%;
+}
+
+/* Long unbroken strings (URLs, hashes, emails) must wrap, not overflow */
+p, li, h1, h2, h3, h4, h5, h6, td, th, figcaption, blockquote {
+  overflow-wrap: break-word;
+}
+
+/* ── 3. Safe-area insets for notched / rounded devices ──────────────── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ── 4. Minimum touch-target helper (WCAG 2.5.8 target-size minimum) ───
+   Apply to icon-only buttons that must remain visually compact:
+   expands the tappable area without changing the visual size. */
+.tap-target {
+  position: relative;
+}
+.tap-target::after {
+  content: '';
+  position: absolute;
+  inset: -6px; /* extends hit area to ≥44px around a 32px icon button */
+}
+
+/* ── 5. Respect user motion preferences (enhanced version) ──────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Typing-indicator exemption (essential status cue) ─────────────────
+   The 3-dot bounce tells the user the AI is processing their message —
+   it is functional activity feedback, not decorative motion, so it keeps
+   animating even when prefers-reduced-motion is on (same approach as
+   WhatsApp itself). Must appear AFTER the kill-switch block above so the
+   exemption wins the cascade. */
+@media (prefers-reduced-motion: reduce) {
+  .wa-typing-dot {
+    animation-name: wa-dot-bounce !important;
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .wa-typing-wrapper {
+    animation: none !important; /* fade-in is decorative — stays disabled */
+  }
+}
+
+/* ── 6. Responsive tables escape hatch ────────────────────────────────
+   Wrap wide tables in <div class="table-responsive"> → scrolls on phones
+   instead of stretching the page. */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-responsive table {
+  min-width: 40rem; /* keeps columns readable while wrapper scrolls */
+}
+
+/* ── 7. Fluid display headings (used by geo/blog hero H1s) ──────────── */
+@media (max-width: 400px) {
+  .text-6xl { font-size: clamp(2rem, 9vw, 3.75rem); line-height: 1.05; }
+  .text-5xl { font-size: clamp(1.85rem, 8vw, 3rem); line-height: 1.08; }
+  .text-4xl { font-size: clamp(1.65rem, 7vw, 2.25rem); line-height: 1.12; }
+}
+
+/* ── 8. Screen-reader-only utility (in case sr-only plugin missing) ─── */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.chat-bg-default {
+  background-color: #EFEAE2; /* Modern WhatsApp light beige background */
+}
+.chat-header-bg {
+  background-color: #F0F2F5; /* Modern WhatsApp light gray header */
+}
+.chat-header-text {
+  color: #111B21; /* Dark text for header */
+}
+.chat-input-bg {
+  background-color: #F0F2F5; /* Modern WhatsApp light gray input */
+}
+
+/* ─── WhatsApp-style Typing Indicator ─────────────────────────────────────── */
+
+/* Scale-bounce — negative delays start each dot already mid-animation → no cold start */
+@keyframes wa-dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
+
+.wa-typing-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  width: fit-content;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.13);
+}
+
+.dark .wa-typing-bubble {
+  background-color: #202c33;
+}
+
+.wa-typing-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #8696a0;
+  border-radius: 50%;
+  animation: wa-dot-bounce 1.4s infinite ease-in-out;
+  will-change: transform, opacity;
+}
+
+/* Staggered negative delays — dots are already mid-wave from first frame */
+.wa-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.wa-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.wa-typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes wa-typing-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wa-typing-wrapper {
+  animation: wa-typing-fadein 0.15s ease-out both;
+}
