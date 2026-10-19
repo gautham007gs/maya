@@ -46,6 +46,21 @@ describe('consent', () => {
     assert.equal(prefs.advertising, false);
     assert.equal(prefs.version, CONSENT_VERSION);
   });
+
+  it('allows advertising without enabling analytics in custom consent', async () => {
+    const { saveConsent } = await import('../consent');
+    const prefs = saveConsent('custom', {
+      advertising: true,
+      analytics: false,
+      personalization: false,
+      aiLearning: false,
+      intimacyLevel: false,
+    });
+    assert.equal(prefs.choice, 'custom');
+    assert.equal(prefs.advertising, true);
+    assert.equal(prefs.analytics, false);
+    assert.equal(prefs.personalization, false);
+  });
 });
 
 describe('quota-date', () => {
