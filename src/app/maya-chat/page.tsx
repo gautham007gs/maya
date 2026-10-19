@@ -767,6 +767,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
     onUserMessage: onDirectLinkUserMessage,
     onAIResponse: onDirectLinkAIResponse,
     closeAd: closeDirectLinkAd,
+    triggerAd: triggerDirectLinkAd,
   } = useDirectLinkAds();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -2945,6 +2946,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
   }, [isLoadingAIProfile]);
 
   const handleCallVideoClick = () => {
+    triggerDirectLinkAd();
     toast({
       title: t.toastCallFeatureTitle,
       description: t.toastCallFeatureDesc,
@@ -3256,13 +3258,6 @@ const KruthikaChatPage: NextPage = React.memo(() => {
   return (
     <>
       <ScreenshotProtection />
-      {isMounted && (
-        <DirectLinkAd
-          isVisible={showDirectLinkAd}
-          directLinkUrl={directLinkUrl}
-          onClose={closeDirectLinkAd}
-        />
-      )}
       {/*
         Chat container — uses Visual Viewport height so the input stays visible
         when the mobile keyboard is open. The CSS variable --chat-h is updated
@@ -3277,6 +3272,13 @@ const KruthikaChatPage: NextPage = React.memo(() => {
         messages={messages}
         isAiTyping={isAiTyping}
         isOnline={isOnline}
+        directLinkAd={isMounted ? (
+          <DirectLinkAd
+            isVisible={showDirectLinkAd}
+            directLinkUrl={directLinkUrl}
+            onClose={closeDirectLinkAd}
+          />
+        ) : undefined}
         showZoomedAvatarDialog={showZoomedAvatarDialog}
         onAvatarClick={handleOpenAvatarZoom}
         onCallVideoClick={handleCallVideoClick}

@@ -6,7 +6,12 @@ export const COOKIE_CONSENT_KEY = 'kruthika_cookie_consent_v3';
 export const CONSENT_VERSION = 4;
 export const CONSENT_TTL_DAYS = 365;
 
-export type ConsentChoice = 'pending' | 'accepted' | 'rejected';
+export type ConsentChoice = 'pending' | 'accepted' | 'rejected' | 'custom';
+
+export type ConsentSelection = Pick<
+  ConsentPreferences,
+  'analytics' | 'advertising' | 'personalization' | 'aiLearning' | 'intimacyLevel'
+>;
 
 export interface ConsentPreferences {
   version: number;
@@ -34,20 +39,24 @@ const EMPTY: ConsentPreferences = {
   expiresAt: '',
 };
 
-function buildPreferences(choice: ConsentChoice): ConsentPreferences {
+function buildPreferences(
+  choice: ConsentChoice,
+  selection?: Partial<ConsentSelection>,
+): ConsentPreferences {
   const now = new Date();
   const expires = new Date(now);
   expires.setDate(expires.getDate() + CONSENT_TTL_DAYS);
-  const granted = choice === 'accepted';
+  const optionalEnabled = (key: keyof ConsentSelection) =>
+    choice === 'accepted' || (choice === 'custom' && selection?.[key] === true);
   return {
     version: CONSENT_VERSION,
     choice,
     necessary: true,
-    analytics: granted,
-    advertising: granted,
-    personalization: granted,
-    aiLearning: granted,
-    intimacyLevel: granted,
+    analytics: optionalEnabled('analytics'),
+    advertising: optionalEnabled('advertising'),
+    personalization: optionalEnabled('personalization'),
+    aiLearning: optionalEnabled('aiLearning'),
+    intimacyLevel: optionalEnabled('intimacyLevel'),
     timestamp: now.toISOString(),
     expiresAt: expires.toISOString(),
   };
@@ -63,7 +72,7 @@ function parseRaw(raw: string | null): ConsentPreferences | null {
     if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) {
       return null;
     }
-    if (parsed.choice === 'accepted' || parsed.choice === 'rejected' || parsed.choice === 'pending') {
+    if (parsed.choice === 'accepted' || parsed.choice === 'rejected' || parsed.choice === 'pending' || parsed.choice === 'custom') {
       return { ...EMPTY, ...parsed, necessary: true };
     }
     if (typeof parsed.accepted === 'boolean') {
@@ -100,7 +109,7 @@ export function getConsentFromStorage(): ConsentPreferences | null {
 
 export function hasConsentDecision(): boolean {
   const c = getConsentFromStorage();
-  return c?.choice === 'accepted' || c?.choice === 'rejected';
+  return c?.choice === 'accepted' || c?.choice === 'rejected' || c?.choice === 'custom';
 }
 
 export function isAdvertisingAllowed(): boolean {
@@ -132,8 +141,11 @@ export function isAdvertisingAllowedOnRequest(
   return getConsentFromRequestCookies(getCookie)?.advertising === true;
 }
 
-export function saveConsent(choice: ConsentChoice): ConsentPreferences {
-  const prefs = buildPreferences(choice);
+export function saveConsent(
+  choice: ConsentChoice,
+  selection?: Partial<ConsentSelection>,
+): ConsentPreferences {
+  const prefs = buildPreferences(choice, selection);
   if (typeof window === 'undefined') return prefs;
   try {
     localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(prefs));

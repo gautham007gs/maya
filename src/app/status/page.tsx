@@ -70,8 +70,7 @@ const StatusItemDisplay: React.FC<StatusItemDisplayProps> = React.memo(({
     onToast,
   }) => {
     const [showStoryImageViewer, setShowStoryImageViewer] = useState(false);
-    const storyViewTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const storyViewedLongEnoughRef = useRef(false);
+    const [showStoryDirectLink, setShowStoryDirectLink] = useState(false);
 
     let avatarUrlToUse = rawAvatarUrl;
     if (
@@ -102,25 +101,26 @@ const StatusItemDisplay: React.FC<StatusItemDisplayProps> = React.memo(({
       }
     }
 
+    useEffect(() => {
+      if (!showStoryImageViewer) {
+        setShowStoryDirectLink(false);
+        return;
+      }
+
+      setShowStoryDirectLink(false);
+      const timer = window.setTimeout(() => setShowStoryDirectLink(true), STATUS_VIEW_AD_DELAY_MS);
+      return () => window.clearTimeout(timer);
+    }, [showStoryImageViewer]);
+
     const handleItemClick = React.useCallback(() => {
       if (isValidStoryImageSrc && storyImageUrl) {
         if ('requestIdleCallback' in window) {
           requestIdleCallback(() => {
             setShowStoryImageViewer(true);
-            storyViewedLongEnoughRef.current = false;
-            if (storyViewTimerRef.current) clearTimeout(storyViewTimerRef.current);
-            storyViewTimerRef.current = setTimeout(() => {
-              storyViewedLongEnoughRef.current = true;
-            }, STATUS_VIEW_AD_DELAY_MS);
           }, { timeout: 100 });
         } else {
           requestAnimationFrame(() => {
             setShowStoryImageViewer(true);
-            storyViewedLongEnoughRef.current = false;
-            if (storyViewTimerRef.current) clearTimeout(storyViewTimerRef.current);
-            storyViewTimerRef.current = setTimeout(() => {
-              storyViewedLongEnoughRef.current = true;
-            }, STATUS_VIEW_AD_DELAY_MS);
           });
         }
       }
@@ -128,8 +128,7 @@ const StatusItemDisplay: React.FC<StatusItemDisplayProps> = React.memo(({
 
     const handleCloseStoryViewer = () => {
       setShowStoryImageViewer(false);
-      if (storyViewTimerRef.current) clearTimeout(storyViewTimerRef.current);
-      storyViewedLongEnoughRef.current = false;
+      setShowStoryDirectLink(false);
     };
 
     const handleAvatarError = (
@@ -215,19 +214,7 @@ const StatusItemDisplay: React.FC<StatusItemDisplayProps> = React.memo(({
         {isValidStoryImageSrc && storyImageUrl && (
           <Dialog
             open={showStoryImageViewer}
-            onOpenChange={(open) => {
-              if (!open) {
-                handleCloseStoryViewer();
-              } else {
-                setShowStoryImageViewer(true);
-                if (storyViewTimerRef.current)
-                  clearTimeout(storyViewTimerRef.current);
-                storyViewedLongEnoughRef.current = false;
-                storyViewTimerRef.current = setTimeout(() => {
-                  storyViewedLongEnoughRef.current = true;
-                }, STATUS_VIEW_AD_DELAY_MS);
-              }
-            }}
+            onOpenChange={(open) => open ? setShowStoryImageViewer(true) : handleCloseStoryViewer()}
           >
             <DialogContent className="!fixed !inset-0 !z-[60] flex !w-screen !h-screen flex-col !bg-black !p-0 !border-0 !shadow-2xl !outline-none !rounded-none !max-w-none !translate-x-0 !translate-y-0">
               <div className="absolute top-0 left-0 right-0 z-20 p-3 flex items-center justify-between bg-gradient-to-b from-black/70 via-black/30 to-transparent">
@@ -276,10 +263,19 @@ const StatusItemDisplay: React.FC<StatusItemDisplayProps> = React.memo(({
                 />
               </div>
 
+              {showStoryDirectLink && (
+                <div className="absolute bottom-3 left-3 right-3 z-30">
+                  <DirectLinkPlacement placement="status-story" compact />
+                </div>
+              )}
+
               {statusText &&
                 !statusText.toLowerCase().includes("tap to add") &&
                 !statusText.toLowerCase().includes("no story update") && (
-                  <div className="absolute bottom-0 left-0 right-0 z-20 p-4 pb-8 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                  <div className={cn(
+                    "absolute left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent",
+                    showStoryDirectLink ? "bottom-24 pb-3" : "bottom-0 pb-8",
+                  )}>
                     <p className="text-white text-center text-sm drop-shadow-md">
                       {statusText}
                     </p>

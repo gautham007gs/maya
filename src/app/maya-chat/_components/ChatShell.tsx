@@ -33,6 +33,7 @@ interface ChatShellProps {
   messages: Message[];
   isAiTyping: boolean;
   isOnline: boolean;
+  directLinkAd?: ReactNode;
   showZoomedAvatarDialog: boolean;
   onAvatarClick: () => void;
   onCallVideoClick: () => void;
@@ -54,6 +55,7 @@ export function ChatShell({
   messages,
   isAiTyping,
   isOnline,
+  directLinkAd,
   showZoomedAvatarDialog,
   onAvatarClick,
   onCallVideoClick,
@@ -107,6 +109,7 @@ export function ChatShell({
       </div>
 
       <div className="flex-shrink-0 z-10 bg-[#F0F0F0] dark:bg-gray-900">
+        {directLinkAd}
         {isMounted && (
           <BannerAdDisplay
             placementKey="maya-chat-input"

@@ -71,10 +71,12 @@ export default function CookiePolicyPage() {
       <section id="consent" className="space-y-3 scroll-mt-24">
         <h2 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-slate-100">2. Consent Management</h2>
         <p>
-          On your first visit we show a consent banner: <strong>Accept</strong> enables optional analytics and
-          advertising; <strong>Decline</strong> keeps only strictly necessary storage. Your choice is recorded (a
-          signed preference record, retained 12 months as proof of compliance) and you can change it at any time via
-          the chat’s 3-dot menu → <strong>Privacy &amp; Cookie Settings</strong>. Withdrawing consent takes effect
+          On your first visit we show a consent banner. <strong>Accept all</strong> enables optional categories;
+          <strong> Reject optional</strong> keeps only strictly necessary storage. <strong>Manage preferences</strong>
+          lets you choose advertising, analytics, personalization, AI learning, and relationship preferences
+          separately. Advertising is enabled only when you allow that category. Your choice is recorded (a signed
+          preference record, retained 12 months as proof of compliance) and you can change it at any time via the
+          chat’s 3-dot menu → <strong>Privacy &amp; Cookie Settings</strong>. Withdrawing consent takes effect
           immediately and never degrades core features.
         </p>
       </section>
@@ -120,9 +122,10 @@ export default function CookiePolicyPage() {
         <h2 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-slate-100">5. Advertising{' '}
           <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 px-2 py-0.5 rounded-full font-medium align-middle ml-1">Optional · Consent-gated</span></h2>
         <p>
-          Kruthika is 100% free thanks to contextual advertising delivered through Adsterra when you accept cookies.
-          Ads are matched to the page you are viewing — <strong>never to your chat content or identity</strong>. If
-          you decline, ad slots stay empty and nothing loads from ad networks.
+          Kruthika is free thanks to advertising delivered through Adsterra when you allow the advertising category.
+          Adsterra says its tags may use cookies and pseudonymous device or browser data to serve and measure ads.
+          We do not send chat messages to advertising partners. If advertising is off, Adsterra tags and direct-link
+          offers do not load.
         </p>
       </section>
 

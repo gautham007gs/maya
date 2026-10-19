@@ -190,28 +190,25 @@ const SocialBarAdDisplay: React.FC<SocialBarAdDisplayProps> = ({ page }) => {
           if (node.nodeName === 'SCRIPT') {
             const origScript = node as HTMLScriptElement;
             const newScript = document.createElement('script');
-            stampCspNonce(newScript);
             newScript.dataset.kruthikaSocialbar = 'true';
 
             // Copy all attributes (src, async, data-*, etc.)
             for (let i = 0; i < origScript.attributes.length; i++) {
               const attr = origScript.attributes[i];
-              // Upgrade insecure src URLs to https to avoid mixed-content blocks
-              if (attr.name === 'src' && typeof attr.value === 'string' && attr.value.startsWith('http://')) {
-                try {
-                  newScript.setAttribute(attr.name, attr.value.replace(/^http:\/\//, 'https://'));
-                } catch (_) {
-                  newScript.setAttribute(attr.name, attr.value);
-                }
-              } else {
-                newScript.setAttribute(attr.name, attr.value);
+              let value = attr.value;
+              if (attr.name.toLowerCase() === 'src') {
+                if (value.startsWith('//')) value = `https:${value}`;
+                if (value.startsWith('http://')) value = value.replace(/^http:\/\//, 'https://');
               }
+              newScript.setAttribute(attr.name, value);
             }
 
             // Copy inline script content if present
             if (origScript.innerHTML.trim()) {
               newScript.innerHTML = origScript.innerHTML;
             }
+            // The current request nonce must take precedence over a stale code snippet nonce.
+            stampCspNonce(newScript);
 
             // Only inject if there's actual code to run
             if (newScript.src || newScript.innerHTML.trim()) {
@@ -277,14 +274,23 @@ const SocialBarAdDisplay: React.FC<SocialBarAdDisplayProps> = ({ page }) => {
 
     };
 
-    // PERF: Trigger on first user interaction (scroll, touch, click, keydown)
-    // or fallback after 4.5s idle so it doesn't compete with hydration/LCP/TBT
-    // or block the between-chat priority banner.
+    // Load shortly after consent at browser idle so the social bar is ready
+    // without requiring another click or waiting several seconds.
     let triggered = false;
+    let idleHandle: number | null = null;
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
     const triggerInject = () => {
       if (triggered) return;
       triggered = true;
       cleanupEvents();
+      if (idleHandle !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleHandle);
+        idleHandle = null;
+      }
+      if (fallbackTimer !== null) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
       doInject();
     };
 
@@ -294,10 +300,16 @@ const SocialBarAdDisplay: React.FC<SocialBarAdDisplayProps> = ({ page }) => {
     };
 
     events.forEach(e => window.addEventListener(e, triggerInject, { passive: true, once: true }));
-    const fallbackTimer = setTimeout(triggerInject, 4500);
+    if ('requestIdleCallback' in window) {
+      idleHandle = (window as any).requestIdleCallback(triggerInject, { timeout: 1500 });
+    }
+    fallbackTimer = setTimeout(triggerInject, 1800);
 
     return () => {
-      clearTimeout(fallbackTimer);
+      if (fallbackTimer !== null) clearTimeout(fallbackTimer);
+      if (idleHandle !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleHandle);
+      }
       cleanupEvents();
     };
   }, [adSettings, isLoadingAdSettings, page, adsAllowed]);

@@ -6,10 +6,11 @@ import { useAdSettings } from "@/contexts/AdSettingsContext";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { isAdvertisingAllowed } from "@/lib/consent";
 
-type DirectLinkPlacementKey = "homepage" | "status" | "blog";
+type DirectLinkPlacementKey = "homepage" | "status" | "blog" | "status-story";
 
 interface DirectLinkPlacementProps {
   placement: DirectLinkPlacementKey;
+  compact?: boolean;
 }
 
 const PLACEMENT_COPY: Record<DirectLinkPlacementKey, { title: string; detail: string }> = {
@@ -25,9 +26,13 @@ const PLACEMENT_COPY: Record<DirectLinkPlacementKey, { title: string; detail: st
     title: "Explore a sponsored offer",
     detail: "A clearly labeled external offer, separate from the article.",
   },
+  "status-story": {
+    title: "Sponsored offer",
+    detail: "An optional link from an external advertiser.",
+  },
 };
 
-const DirectLinkPlacement: React.FC<DirectLinkPlacementProps> = ({ placement }) => {
+const DirectLinkPlacement: React.FC<DirectLinkPlacementProps> = ({ placement, compact = false }) => {
   const { adSettings, isLoadingAdSettings } = useAdSettings();
   const [consentAllowed, setConsentAllowed] = useState(false);
   const [eligible, setEligible] = useState(false);
@@ -125,7 +130,9 @@ const DirectLinkPlacement: React.FC<DirectLinkPlacementProps> = ({ placement }) 
 
   return (
     <aside
-      className="mx-auto my-5 w-full max-w-3xl rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm"
+      className={compact
+        ? "mx-0 my-0 w-full rounded-xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-lg"
+        : "mx-auto my-5 w-full max-w-3xl rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm"}
       aria-label="Sponsored link"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">

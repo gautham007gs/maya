@@ -183,7 +183,7 @@ const translations: Record<SupportedLang, UIStrings> = {
     muteNotifications: 'Mute notifications',
     exitChat: 'Exit Chat',
     cookieNotice: 'We use cookies to make your experience better.',
-    accept: 'Accept',
+    accept: 'Accept all',
     youAreOffline: 'You are offline',
     backOnline: 'You are back online!',
     messageSaved: 'Message saved — will be sent when back online',

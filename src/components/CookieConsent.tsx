@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Cookie, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -8,10 +8,11 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   COOKIE_CONSENT_KEY,
+  getConsentFromStorage,
   hasConsentDecision,
   saveConsent,
-  clearConsent,
   type ConsentChoice,
+  type ConsentSelection,
 } from '@/lib/consent';
 
 interface CookieConsentProps {
@@ -22,7 +23,13 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
   const [show, setShow] = useState(false);
   const [visible, setVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const acceptButtonRef = useRef<HTMLButtonElement>(null);
+  const [preferences, setPreferences] = useState<ConsentSelection>({
+    analytics: false,
+    advertising: false,
+    personalization: false,
+    aiLearning: false,
+    intimacyLevel: false,
+  });
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -37,15 +44,6 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
     return () => clearTimeout(timer);
   }, []);
 
-  // The primary consent decision is intentionally the first focus target.
-  // This improves keyboard access and makes the clear affirmative action easy
-  // to find without auto-submitting anything for the visitor.
-  useEffect(() => {
-    if (!show || !visible) return;
-    const timer = window.setTimeout(() => acceptButtonRef.current?.focus(), 50);
-    return () => window.clearTimeout(timer);
-  }, [show, visible]);
-
   const applyChoice = useCallback((choice: ConsentChoice) => {
     saveConsent(choice);
     setShowSettings(false);
@@ -55,11 +53,34 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
   }, []);
 
   const openSettings = useCallback(() => {
-    clearConsent();
+    const current = getConsentFromStorage();
+    setPreferences({
+      analytics: current?.analytics === true,
+      advertising: current?.advertising === true,
+      personalization: current?.personalization === true,
+      aiLearning: current?.aiLearning === true,
+      intimacyLevel: current?.intimacyLevel === true,
+    });
     setShow(true);
     setShowSettings(true);
     requestAnimationFrame(() => setVisible(true));
   }, []);
+
+  const toggleSettings = useCallback(() => {
+    if (showSettings) {
+      setShowSettings(false);
+      return;
+    }
+    openSettings();
+  }, [openSettings, showSettings]);
+
+  const saveCustomChoices = useCallback(() => {
+    saveConsent('custom', preferences);
+    setShowSettings(false);
+    setVisible(false);
+    setTimeout(() => setShow(false), 350);
+    window.dispatchEvent(new CustomEvent('consentchange', { detail: { choice: 'custom' } }));
+  }, [preferences]);
 
   useEffect(() => {
     const handler = () => openSettings();
@@ -70,6 +91,9 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
   if (!show) {
     return null;
   }
+
+  const choiceButtonClass =
+    "min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-green-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700";
 
   return (
     <div
@@ -82,19 +106,19 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
       aria-modal="false"
       aria-label="Cookie consent banner"
     >
-      <div className="max-w-4xl mx-auto pointer-events-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 sm:p-5">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6">
-          
-          {/* Text & Icon */}
-          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+      <div className="max-h-[85vh] max-w-4xl mx-auto pointer-events-auto overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 sm:p-5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3 min-w-0">
             <div className="shrink-0 p-2 bg-green-100 dark:bg-green-900/40 rounded-xl">
               <Cookie className="h-5 w-5 text-green-700 dark:text-green-400" />
             </div>
             <div className="min-w-0">
               <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed">
-                {showSettings
-                  ? 'We use cookies to improve chat experience, personalization, and deliver relevant features. Essential cookies remain active.'
-                  : (t.cookieNotice || 'We use cookies to improve your conversation experience, analyze performance, and serve relevant content.')}{' '}
+                Necessary storage keeps the site working. If you allow advertising, Adsterra may use third-party
+                cookies and pseudonymous device data to serve and measure ads. We do not send chat messages to ad
+                partners. You can choose advertising separately from analytics.
+              </p>
+              <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
                 <Link
                   href="/legal/privacy"
                   className="text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 underline font-medium inline-block"
@@ -109,38 +133,84 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
                   Cookie Policy
                 </Link>
               </p>
+              <button
+                type="button"
+                onClick={toggleSettings}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-md text-xs font-semibold text-green-800 hover:text-green-900 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 dark:text-green-300 dark:hover:text-green-200"
+                aria-expanded={showSettings}
+              >
+                <Settings size={14} aria-hidden="true" />
+                {showSettings ? 'Hide preferences' : 'Manage preferences'}
+              </button>
             </div>
           </div>
 
-          {/* Action Buttons: Left = Decline, Right = Prominent Accept */}
-          <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto justify-end shrink-0 pt-1 sm:pt-0">
-            <button
-              onClick={() => setShowSettings(v => !v)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors mr-auto sm:mr-0"
-              title="Cookie settings"
-              aria-label="Cookie settings"
-            >
-              <Settings size={16} />
-            </button>
+          {showSettings && (
+            <fieldset className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+              <legend className="px-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                Optional categories
+              </legend>
+              <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                Adsterra may set cookies when advertising is enabled. Turning this off prevents Adsterra ad scripts
+                from loading. Necessary storage is always on.
+              </p>
+              <label className="flex items-center justify-between gap-4 rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900">
+                <span>
+                  <span className="block font-medium text-slate-800 dark:text-slate-100">Necessary</span>
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">Security and core site functions</span>
+                </span>
+                <input type="checkbox" checked disabled aria-label="Necessary cookies are always active" className="h-4 w-4 accent-green-700" />
+              </label>
+              {([
+                ['advertising', 'Advertising (Adsterra)', 'Third-party ad delivery and measurement'],
+                ['analytics', 'Analytics', 'First-party site performance measurement'],
+                ['personalization', 'Personalization', 'Remember optional experience preferences'],
+                ['aiLearning', 'AI learning', 'Use optional preferences to adapt chat behavior'],
+                ['intimacyLevel', 'Relationship preferences', 'Remember optional relationship-stage settings'],
+              ] as const).map(([key, label, description]) => (
+                <label
+                  key={key}
+                  className="flex items-center justify-between gap-4 rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900"
+                >
+                  <span>
+                    <span className="block font-medium text-slate-800 dark:text-slate-100">{label}</span>
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">{description}</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={preferences[key]}
+                    onChange={(event) => setPreferences(current => ({ ...current, [key]: event.target.checked }))}
+                    aria-label={`${label} ${preferences[key] ? 'enabled' : 'disabled'}`}
+                    className="h-4 w-4 shrink-0 accent-green-700 focus-visible:ring-2 focus-visible:ring-green-700"
+                  />
+                </label>
+              ))}
+            </fieldset>
+          )}
 
+          <div className={showSettings ? "grid grid-cols-1 gap-2 sm:grid-cols-3" : "grid grid-cols-2 gap-2"}>
+            {showSettings ? (
+              <Button type="button" variant="outline" className={choiceButtonClass} onClick={saveCustomChoices}>
+                Save choices
+              </Button>
+            ) : null}
             <Button
+              type="button"
+              variant="outline"
+              className={choiceButtonClass}
               onClick={() => applyChoice('rejected')}
-              size="sm"
-              variant="ghost"
-              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 h-8 px-3 font-normal"
-              aria-label="Decline non-essential cookies"
+              aria-label="Reject optional cookies"
             >
-              Decline
+              Reject optional
             </Button>
-
             <Button
-              ref={acceptButtonRef}
+              type="button"
+              variant="outline"
+              className={choiceButtonClass}
               onClick={() => applyChoice('accepted')}
-              size="lg"
-              className="bg-[#25d366] hover:bg-[#20bd5a] text-white text-sm sm:text-base font-bold min-h-12 px-7 sm:px-9 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus-visible:ring-4 focus-visible:ring-[#25d366]/40 focus-visible:outline-none"
-              aria-label="Accept all cookies"
+              aria-label="Accept all optional cookies"
             >
-              {t.accept || 'Accept All'}
+              {t.accept || 'Accept all'}
             </Button>
           </div>
 

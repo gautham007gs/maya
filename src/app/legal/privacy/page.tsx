@@ -208,7 +208,7 @@ export default function PrivacyPage() {
               <tr><td className={td}>Hosting &amp; database</td><td className={td}>Hostinger (Node.js runtime, MySQL)</td><td className={td}>Technical telemetry, configuration</td></tr>
               <tr><td className={td}>Edge cache</td><td className={td}>Upstash Redis</td><td className={td}>Non-personal cached config/blog payloads</td></tr>
               <tr><td className={td}>Web push (opt-in)</td><td className={td}>OneSignal</td><td className={td}>Subscription ID, notification content</td></tr>
-              <tr><td className={td}>Contextual advertising (consent-based)</td><td className={td}>Adsterra</td><td className={td}>Non-personalised ad serving; no chat data</td></tr>
+              <tr><td className={td}>Third-party advertising (optional)</td><td className={td}>Adsterra</td><td className={td}>May use cookies and pseudonymous device/browser data to serve and measure ads; no chat messages</td></tr>
             </tbody>
           </table>
         </div>
@@ -223,8 +223,8 @@ export default function PrivacyPage() {
         <h2 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-slate-100">7. Cookies &amp; Local Storage</h2>
         <p>
           We use a small number of strictly necessary cookies plus browser localStorage for preferences. Optional
-          analytics and advertising technologies load only with your consent. Full details — including each storage
-          key, its purpose and duration — are set out in our{' '}
+          analytics, advertising and personalization technologies load only when their categories are allowed in
+          your consent preferences. Full details — including each storage key, its purpose and duration — are set out in our{' '}
           <a href="/legal/cookie-policy" className="underline text-violet-700 dark:text-violet-300">Cookie Policy</a>.
         </p>
       </section>
