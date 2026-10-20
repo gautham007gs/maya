@@ -50,7 +50,7 @@ export function RealTimeTab({ newRealTimeStats, peakHours: _peakHours, sessionsS
             <div className="text-2xl font-bold">
               {sessionsStartedLast15Minutes}
             </div>
-            <p className="text-xs text-muted-foreground">Marked active; session start was in the last 15 minutes</p>
+            <p className="text-xs text-muted-foreground">Marked active; started within the last 15 minutes</p>
           </CardContent>
         </Card>
 

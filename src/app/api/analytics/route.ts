@@ -368,7 +368,11 @@ async function getRealTimeMetrics() {
         .select('message_id, chat_id, sender_type, created_at')
         .gte('created_at', oneHourAgo.toISOString())
         .limit(2000),
-      getRealtimeSessionCountsAggregated(),
+      safeRun(
+        getRealtimeSessionCountsAggregated,
+        { sessionsStartedLast15Minutes: 0, sessionsStartedLast24Hours: 0 },
+        'realtimeSessionCounts',
+      ),
       getRealAdMetrics(oneHourAgo.toISOString().split('T')[0]),
       // getRealTopPages() now takes the same date-only string format as the
       // overview endpoint (see below) rather than a hardcoded 24h window —

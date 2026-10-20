@@ -23,7 +23,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Settings, Palette, Info, CircleUser, Globe, ImagePlus, Music2, Trash2, CirclePlus, PenLine, ChartBarBig, SquarePen, FileText, RefreshCcw, RotateCcw, TrendingUp, KeyRound, Bell, Mic, ExternalLink, LayoutPanelLeft, Database, Terminal, MessageSquare, Users, EyeOff } from "lucide-react"
 import CmsWorkspaceShell from '@/components/admin/CmsWorkspaceShell';
 import { isDatabaseConfigured, db } from '@/lib/dbClient';
-import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAIProfile } from '@/contexts/AIProfileContext';
@@ -358,7 +357,7 @@ const AdminProfilePage: React.FC = () => {
         };
         const databaseDateKey = (value: unknown) => {
           if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
-          const parsed = new Date(value as string | number | Date);
+          const parsed = value instanceof Date ? value : new Date(value as string | number);
           return Number.isNaN(parsed.getTime()) ? null : dateKeyInBusinessTimezone(parsed);
         };
         const todayKey = dateKeyInBusinessTimezone(new Date());

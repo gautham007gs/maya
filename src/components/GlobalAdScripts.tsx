@@ -74,7 +74,7 @@ const GlobalAdScripts: React.FC = () => {
     let observerStopTimer: ReturnType<typeof setTimeout> | null = null;
     let idleHandle: number | null = null;
     let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
-    let triggered = false;
+    let injectionScheduled = false;
     let scriptWasAdded = false;
 
     const isVendorNode = (node: Node): boolean => {
@@ -107,10 +107,6 @@ const GlobalAdScripts: React.FC = () => {
         clearTimeout(fallbackTimer);
         fallbackTimer = null;
       }
-    };
-
-    const cleanupListeners = () => {
-      events.forEach(eventName => window.removeEventListener(eventName, trigger));
     };
 
     const doInject = () => {
@@ -172,23 +168,19 @@ const GlobalAdScripts: React.FC = () => {
       }
     };
 
-    const events = ['pointerdown', 'touchstart', 'click', 'keydown'];
-    const trigger = () => {
-      if (triggered) return;
-      triggered = true;
-      cleanupListeners();
+    const injectWhenReady = () => {
+      if (injectionScheduled) return;
+      injectionScheduled = true;
       cancelSchedule();
       doInject();
     };
 
-    events.forEach(eventName => window.addEventListener(eventName, trigger, { passive: true, once: true }));
     if ('requestIdleCallback' in window) {
-      idleHandle = (window as any).requestIdleCallback(trigger, { timeout: 1500 });
+      idleHandle = (window as any).requestIdleCallback(injectWhenReady, { timeout: 700 });
     }
-    fallbackTimer = setTimeout(trigger, 1800);
+    fallbackTimer = setTimeout(injectWhenReady, 700);
 
     return () => {
-      cleanupListeners();
       cancelSchedule();
       observer?.disconnect();
       observer = null;

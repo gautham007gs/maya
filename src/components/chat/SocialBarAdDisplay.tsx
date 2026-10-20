@@ -301,9 +301,9 @@ const SocialBarAdDisplay: React.FC<SocialBarAdDisplayProps> = ({ page }) => {
 
     events.forEach(e => window.addEventListener(e, triggerInject, { passive: true, once: true }));
     if ('requestIdleCallback' in window) {
-      idleHandle = (window as any).requestIdleCallback(triggerInject, { timeout: 1500 });
+      idleHandle = (window as any).requestIdleCallback(triggerInject, { timeout: 800 });
     }
-    fallbackTimer = setTimeout(triggerInject, 1800);
+    fallbackTimer = setTimeout(triggerInject, 800);
 
     return () => {
       if (fallbackTimer !== null) clearTimeout(fallbackTimer);

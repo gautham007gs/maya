@@ -77,6 +77,30 @@ describe('consent', () => {
     assert.equal(prefs?.advertising, false);
     assert.equal(prefs?.analytics, false);
   });
+
+  it('requires an analytics opt-in for server-side analytics writes', async () => {
+    const { COOKIE_CONSENT_KEY, isAnalyticsAllowedOnRequest } = await import('../consent');
+    const allowed = encodeURIComponent(JSON.stringify({
+      version: 4,
+      choice: 'custom',
+      analytics: true,
+      advertising: false,
+    }));
+    const rejected = encodeURIComponent(JSON.stringify({
+      version: 4,
+      choice: 'rejected',
+      analytics: false,
+      advertising: false,
+    }));
+    assert.equal(
+      isAnalyticsAllowedOnRequest(name => name === COOKIE_CONSENT_KEY ? allowed : undefined),
+      true,
+    );
+    assert.equal(
+      isAnalyticsAllowedOnRequest(name => name === COOKIE_CONSENT_KEY ? rejected : undefined),
+      false,
+    );
+  });
 });
 
 describe('quota-date', () => {
