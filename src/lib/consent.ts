@@ -3,7 +3,10 @@
  */
 
 export const COOKIE_CONSENT_KEY = 'kruthika_cookie_consent_v3';
-export const CONSENT_VERSION = 4;
+// Increment when the consent copy/categories or legal basis changes. Older
+// decisions are re-prompted instead of being silently carried into a changed
+// consent flow.
+export const CONSENT_VERSION = 5;
 export const CONSENT_TTL_DAYS = 365;
 
 export type ConsentChoice = 'pending' | 'accepted' | 'rejected' | 'custom';
@@ -66,7 +69,7 @@ function parseRaw(raw: string | null): ConsentPreferences | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<ConsentPreferences> & { accepted?: boolean };
-    if (typeof parsed.version === 'number' && parsed.version > CONSENT_VERSION) {
+    if (typeof parsed.version !== 'number' || parsed.version !== CONSENT_VERSION) {
       return null;
     }
     if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) {
@@ -111,8 +114,9 @@ export function getConsentFromStorage(): ConsentPreferences | null {
       .find(c => c.startsWith(`${COOKIE_CONSENT_KEY}=`));
     if (!match) return null;
     const val = decodeURIComponent(match.split('=')[1] || '');
-    if (val === '1') return buildPreferences('accepted');
-    if (val === '0') return buildPreferences('rejected');
+    // Legacy compact consent cookies do not carry a consent version. Treat
+    // them as stale so existing visitors see the updated notice once.
+    if (val === '1' || val === '0') return null;
     return parseRaw(val);
   } catch {
     return null;
@@ -138,8 +142,8 @@ export function getConsentFromRequestCookies(
 ): ConsentPreferences | null {
   const raw = getCookie(COOKIE_CONSENT_KEY);
   if (!raw) return null;
-  if (raw === '1') return buildPreferences('accepted');
-  if (raw === '0') return buildPreferences('rejected');
+  // Legacy compact consent cookies do not carry a consent version.
+  if (raw === '1' || raw === '0') return null;
   try {
     return parseRaw(decodeURIComponent(raw));
   } catch {

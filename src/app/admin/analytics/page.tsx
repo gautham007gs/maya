@@ -25,6 +25,7 @@ interface AnalyticsData {
 
   // User engagement
   messagesSentToday: number;
+  todayChattedUsers: number;
   imagesSharedToday: number;
   avgResponseTime: number;
   bounceRate: number;
@@ -56,6 +57,8 @@ interface AnalyticsData {
   peakHours: Array<{ hour: number; users: number }>;
 }
 
+type OverviewRange = '1h' | '24h' | '3d' | '7d' | '30d';
+
 interface RealTimeMetrics {
   sessionsStartedLast15Minutes: number;
   sessionsStartedLast24Hours: number;
@@ -77,6 +80,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
     avgSessionTime: 0,
     userRetention: 0,
     messagesSentToday: 0,
+    todayChattedUsers: 0,
     imagesSharedToday: 0,
     avgResponseTime: 0,
     bounceRate: 0,
@@ -101,6 +105,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  const [overviewRange, setOverviewRange] = useState<OverviewRange>('7d');
   // Tracks whether the very first data fetch has completed.
   // Background polls must NOT call setIsLoading(true) — doing so forces a full
   // re-render of every Recharts chart (1 400+ lines) which freezes the browser
@@ -318,7 +323,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
   const isFetchingRealTimeDataRef = React.useRef(false);
 
   // Real-time data fetching from Hostinger MySQL
-  const fetchRealTimeData = async () => {
+  const fetchRealTimeData = async (range: OverviewRange = overviewRange) => {
     if (isFetchingRealTimeDataRef.current) {
       console.warn('⏭️ Skipping analytics fetch — previous fetch still in flight');
       return;
@@ -346,7 +351,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
       // 2 identical concurrent queries (both running SELECT * with no LIMIT on
       // messages_log), exhausting the 5-connection MySQL pool and freezing the browser.
       const [overviewData, realtimeData] = await Promise.all([
-        analyticsTracker.getAnalyticsOverview('7d').catch(err => {
+        analyticsTracker.getAnalyticsOverview(range).catch(err => {
           console.error('Overview data fetch failed:', err);
           return { success: false, error: err.message };
         }),
@@ -385,6 +390,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
           avgSessionTime: currentDuration > 0 ? currentDuration : data.avgSessionTime || 0,
           userRetention: data.userRetention || 0,
           messagesSentToday: Math.max(dailyMessages, data.messagesSentToday || 0),
+          todayChattedUsers: data.todayChattedUsers || 0,
           imagesSharedToday: Math.max(totalImages, data.imagesSharedToday || 0),
           avgResponseTime: data.avgResponseTime || 0,
           bounceRate: data.bounceRate || 0,
@@ -490,6 +496,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
       avgSessionTime: 0,
       userRetention: 0,
       messagesSentToday: 0,
+      todayChattedUsers: 0,
       imagesSharedToday: 0,
       avgResponseTime: 0,
       bounceRate: 0,
@@ -594,6 +601,12 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
     fetchRealTimeData();
   };
 
+  const handleOverviewRangeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextRange = event.target.value as OverviewRange;
+    setOverviewRange(nextRange);
+    fetchRealTimeData(nextRange);
+  };
+
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -652,9 +665,26 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
             </Badge>
           )}
         </div>
-        {lastRefresh && (
-          <span className="text-xs text-slate-400">Last updated: {lastRefresh.toLocaleTimeString()}</span>
-        )}
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-500">
+            <span>Range</span>
+            <select
+              value={overviewRange}
+              onChange={handleOverviewRangeChange}
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              aria-label="Analytics time range"
+            >
+              <option value="1h">Past 1 hour</option>
+              <option value="24h">Past 24 hours</option>
+              <option value="3d">Past 3 days</option>
+              <option value="7d">Past 7 days</option>
+              <option value="30d">Past 30 days</option>
+            </select>
+          </label>
+          {lastRefresh && (
+            <span className="hidden sm:inline text-xs text-slate-400">Last updated: {lastRefresh.toLocaleTimeString()}</span>
+          )}
+        </div>
       </div>
 
       {/* Real-time Status Bar */}
@@ -706,6 +736,17 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                 <div className="text-2xl font-bold">{formatNumber(analytics.todayActiveSessions)}</div>
                 <p className="text-xs text-muted-foreground">Distinct signed sessions in today’s business-timezone day; analytics opt-in only.</p>
                 <Progress value={analytics.todayActiveSessions > 0 ? Math.min(100, analytics.todayActiveSessions * 2) : 0} className="mt-2" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Users chatted today</CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatNumber(analytics.todayChattedUsers)}</div>
+                <p className="text-xs text-muted-foreground">Distinct opted-in users with chat activity today</p>
               </CardContent>
             </Card>
 

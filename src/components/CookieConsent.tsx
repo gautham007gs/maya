@@ -115,7 +115,8 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
               <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed">
                 Necessary storage keeps the site working. This free service is supported by ads. If you allow
                 advertising, Adsterra may use third-party cookies and pseudonymous device data to serve and measure
-                ads. We do not send chat messages to ad partners. You can choose advertising separately from analytics.
+                ads. We do not send chat messages to ad partners. You can accept all optional categories or manage
+                them individually. Ads do not load until you make a choice.
               </p>
               <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
                 <Link
@@ -193,15 +194,17 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
                 Save choices
               </Button>
             ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              className={choiceButtonClass}
-              onClick={() => applyChoice('rejected')}
-              aria-label="Reject optional cookies"
-            >
-              Reject optional
-            </Button>
+            {!showSettings && (
+              <Button
+                type="button"
+                variant="outline"
+                className={choiceButtonClass}
+                onClick={openSettings}
+                aria-label="Manage cookie preferences"
+              >
+                Manage preferences
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"

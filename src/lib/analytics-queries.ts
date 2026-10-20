@@ -2,10 +2,15 @@ import 'server-only';
 import { getMysqlClient } from './mysql-client';
 import { getQuotaDateString } from './quota-date';
 
-export async function getDeviceBreakdownAggregated(): Promise<{ mobile: number; desktop: number; tablet: number }> {
+function startBoundary(startDate: string): string {
+  return startDate.includes('T') ? startDate : `${startDate}T00:00:00Z`;
+}
+
+export async function getDeviceBreakdownAggregated(startDate = '1970-01-01T00:00:00Z'): Promise<{ mobile: number; desktop: number; tablet: number }> {
   const db = await getMysqlClient();
   const [rows]: any = await db.query(
-    `SELECT device_type, COUNT(*) AS cnt FROM user_analytics GROUP BY device_type`,
+    `SELECT device_type, COUNT(*) AS cnt FROM user_analytics WHERE created_at >= ? GROUP BY device_type`,
+    [startBoundary(startDate)],
   );
   const counts: Record<string, number> = {};
   let total = 0;
@@ -22,16 +27,16 @@ export async function getDeviceBreakdownAggregated(): Promise<{ mobile: number; 
   };
 }
 
-export async function getTopCountriesAggregated(limit = 5) {
+export async function getTopCountriesAggregated(startDate = '1970-01-01T00:00:00Z', limit = 5) {
   const db = await getMysqlClient();
   const [rows]: any = await db.query(
     `SELECT country_name AS country, COUNT(*) AS users
      FROM user_analytics
-     WHERE country_name IS NOT NULL AND country_name != ''
+     WHERE created_at >= ? AND country_name IS NOT NULL AND country_name != ''
      GROUP BY country_name
      ORDER BY users DESC
      LIMIT ?`,
-    [limit],
+    [startBoundary(startDate), limit],
   );
   return (rows || []).map((r: any) => ({ country: r.country, users: Number(r.users) || 0 }));
 }
@@ -44,7 +49,7 @@ export async function getPeakHoursAggregated(startDate: string) {
      WHERE created_at >= ?
      GROUP BY HOUR(created_at)
      ORDER BY hour ASC`,
-    [`${startDate}T00:00:00Z`],
+    [startBoundary(startDate)],
   );
   const hourCounts: Record<number, number> = {};
   for (const row of rows || []) hourCounts[Number(row.hour)] = Number(row.users) || 0;
@@ -65,7 +70,7 @@ export async function getTopPagesAggregated(startDate: string, limit = 5) {
      GROUP BY page_path
      ORDER BY views DESC
      LIMIT ?`,
-    [`${startDate}T00:00:00Z`, limit],
+    [startBoundary(startDate), limit],
   );
   return (rows || []).map((r: any) => ({ page: r.page || '/', views: Number(r.views) || 0 }));
 }
@@ -80,7 +85,7 @@ export async function getSessionMetricsAggregated(startDate: string) {
        COUNT(*) AS total_sessions
      FROM user_sessions
      WHERE started_at >= ?`,
-    [`${startDate}T00:00:00Z`],
+    [startBoundary(startDate)],
   );
   const row = (rows || [])[0] || {};
   const total = Number(row.total_sessions) || 0;
@@ -105,7 +110,7 @@ export async function getLanguageDistributionAggregated(startDate: string, limit
      GROUP BY language
      ORDER BY messages DESC
      LIMIT ?`,
-    [`${startDate}T00:00:00Z`, limit],
+    [startBoundary(startDate), limit],
   );
   const total = (rows || []).reduce((s: number, r: any) => s + (Number(r.messages) || 0), 0);
   return (rows || []).map((r: any) => ({
@@ -124,7 +129,7 @@ export async function getRepeatUsersAggregated(startDate: string): Promise<numbe
        GROUP BY user_pseudo_id
        HAVING COUNT(DISTINCT activity_date) > 1
      ) t`,
-    [startDate],
+    [startDate.slice(0, 10)],
   );
   return Number((rows || [])[0]?.repeat_users) || 0;
 }
@@ -135,7 +140,7 @@ export async function getAiResponseMetricsAggregated(startDate: string) {
     `SELECT AVG(duration_ms) AS average, COUNT(*) AS samples
      FROM ai_response_times
      WHERE created_at >= ? AND duration_ms > 0`,
-    [`${startDate}T00:00:00Z`],
+    [startBoundary(startDate)],
   );
   const row = (rows || [])[0] || {};
   return {
@@ -151,13 +156,13 @@ export async function getOverviewCountsAggregated(startDate: string) {
       `SELECT DATE(created_at) AS d, COUNT(*) AS messages
        FROM messages_log WHERE created_at >= ?
        GROUP BY DATE(created_at) ORDER BY d ASC`,
-      [`${startDate}T00:00:00Z`],
+      [startBoundary(startDate)],
     ),
     db.query(
       `SELECT activity_date AS d, COUNT(DISTINCT user_pseudo_id) AS users
        FROM daily_activity_log WHERE activity_date >= ?
        GROUP BY activity_date ORDER BY d ASC`,
-      [startDate],
+      [startDate.slice(0, 10)],
     ),
   ]);
   return {
@@ -168,12 +173,18 @@ export async function getOverviewCountsAggregated(startDate: string) {
 
 export async function getOverviewTotals(startDate: string) {
   const db = await getMysqlClient();
-  const [[msgRows], [userRows], [todayRows]]: any = await Promise.all([
-    db.query(`SELECT COUNT(*) AS total FROM messages_log WHERE created_at >= ?`, [`${startDate}T00:00:00Z`]),
-    db.query(`SELECT COUNT(DISTINCT user_pseudo_id) AS total FROM daily_activity_log WHERE activity_date >= ?`, [startDate]),
+  const [[msgRows], [userRows], [todayRows], [chatUsersRows]]: any = await Promise.all([
+    db.query(`SELECT COUNT(*) AS total FROM messages_log WHERE created_at >= ?`, [startBoundary(startDate)]),
+    db.query(`SELECT COUNT(DISTINCT user_pseudo_id) AS total FROM daily_activity_log WHERE activity_date >= ?`, [startDate.slice(0, 10)]),
     db.query(
       `SELECT COUNT(*) AS msgs_today, SUM(CASE WHEN has_image = 1 THEN 1 ELSE 0 END) AS images_today
-       FROM messages_log WHERE DATE(created_at) = CURDATE()`,
+       FROM messages_log WHERE DATE(created_at) = CURDATE() AND sender_type = 'user'`,
+    ),
+    db.query(
+      `SELECT COUNT(DISTINCT user_pseudo_id) AS chatted_today
+       FROM daily_activity_log
+       WHERE activity_date = ? AND chat_id IS NOT NULL`,
+      [getQuotaDateString()],
     ),
   ]);
   return {
@@ -181,6 +192,7 @@ export async function getOverviewTotals(startDate: string) {
     totalUsers: Number(userRows?.[0]?.total) || 0,
     todayMessages: Number(todayRows?.[0]?.msgs_today) || 0,
     imagesSharedToday: Number(todayRows?.[0]?.images_today) || 0,
+    todayChattedUsers: Number(chatUsersRows?.[0]?.chatted_today) || 0,
   };
 }
 
@@ -229,7 +241,7 @@ export async function getMessageBreakdownAggregated(startDate: string) {
        COUNT(*) AS total
      FROM messages_log
      WHERE created_at >= ?`,
-    [`${startDate}T00:00:00Z`],
+    [startBoundary(startDate)],
   );
   const row = (rows || [])[0] || {};
   return {
@@ -247,7 +259,7 @@ export async function getHourlyDistributionAggregated(startDate: string) {
      FROM messages_log
      WHERE created_at >= ?
      GROUP BY HOUR(created_at)`,
-    [`${startDate}T00:00:00Z`],
+    [startBoundary(startDate)],
   );
   const counts: Record<number, number> = {};
   for (const row of rows || []) counts[Number(row.hour)] = Number(row.messages) || 0;

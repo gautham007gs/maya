@@ -62,7 +62,7 @@ describe('consent', () => {
     assert.equal(prefs.personalization, false);
   });
 
-  it('preserves an older rejection instead of re-prompting to change it', async () => {
+  it('re-prompts for an older consent version', async () => {
     const { COOKIE_CONSENT_KEY, getConsentFromRequestCookies } = await import('../consent');
     const priorDecision = encodeURIComponent(JSON.stringify({
       version: 3,
@@ -73,9 +73,7 @@ describe('consent', () => {
     const prefs = getConsentFromRequestCookies(name =>
       name === COOKIE_CONSENT_KEY ? priorDecision : undefined,
     );
-    assert.equal(prefs?.choice, 'rejected');
-    assert.equal(prefs?.advertising, false);
-    assert.equal(prefs?.analytics, false);
+    assert.equal(prefs, null);
   });
 
   it('requires an analytics opt-in for server-side analytics writes', async () => {

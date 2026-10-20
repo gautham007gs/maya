@@ -52,10 +52,11 @@ const getRealAiResponseMetrics = getAiResponseMetricsAggregated;
 
 async function getRealAdMetrics(startDate: string) {
   try {
+    const startBoundary = startDate.includes('T') ? startDate : `${startDate}T00:00:00Z`;
     const { data: adData, error } = await db
       .from('ad_interactions')
       .select('action_type, ad_network, ad_type')
-      .gte('timestamp', startDate + 'T00:00:00Z');
+      .gte('timestamp', startBoundary);
 
     if (error) throw error;
     if (!adData || adData.length === 0) {
@@ -85,13 +86,14 @@ async function getRealAdMetrics(startDate: string) {
 
 async function getRealUserJourney(startDate: string) {
   try {
+    const startBoundary = startDate.includes('T') ? startDate : `${startDate}T00:00:00Z`;
     // idx_ujs_completed (added via the migration in HOSTINGER_MYSQL_SETUP.sql)
     // now supports this range filter, so it can follow the dashboard's actual
     // selected date range instead of being hardcoded to the last 24 hours.
     const { data: journeyData, error } = await db
       .from('user_journey_steps')
       .select('step_name, session_id')
-      .gte('completed_at', startDate + 'T00:00:00Z')
+      .gte('completed_at', startBoundary)
       .limit(5000)
       .order('completed_at', { ascending: false });
 
@@ -200,8 +202,17 @@ export async function GET(request: NextRequest) {
     const startDate = new Date();
 
     switch (dateRange) {
+      case '1h':
+        startDate.setTime(now.getTime() - 60 * 60 * 1000);
+        break;
+      case '24h':
+        startDate.setTime(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
       case '1d':
         startDate.setDate(now.getDate() - 1);
+        break;
+      case '3d':
+        startDate.setDate(now.getDate() - 3);
         break;
       case '7d':
         startDate.setDate(now.getDate() - 7);
@@ -225,7 +236,7 @@ export async function GET(request: NextRequest) {
 
     switch (type) {
       case 'overview': {
-        const result = await getOverviewAnalytics(startDate.toISOString().split('T')[0]);
+        const result = await getOverviewAnalytics(startDate.toISOString(), dateRange);
         const body = await result.json();
         if (body.success) setCache(cacheKey, body, 90_000); // 90-second cache
         return NextResponse.json(body, { status: body.success ? 200 : 500 });
@@ -237,7 +248,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(body, { status: body.success ? 200 : 500 });
       }
       case 'detailed': {
-        const result = await getDetailedAnalytics(startDate.toISOString().split('T')[0]);
+        const result = await getDetailedAnalytics(startDate.toISOString());
         const body = await result.json();
         if (body.success) setCache(cacheKey, body, 60_000); // 60-second cache
         return NextResponse.json(body, { status: body.success ? 200 : 500 });
@@ -264,13 +275,13 @@ async function safeRun<T>(fn: () => PromiseLike<T>, fallback: T, label: string):
   }
 }
 
-async function getOverviewAnalytics(startDate: string) {
+async function getOverviewAnalytics(startDate: string, dateRange: string) {
   try {
     const [counts, totals, deviceBreakdown, topCountries, peakHours, adMetrics, topPages, userJourney, cookieConsent, sessionMetrics, languageDistribution, repeatUsers, aiResponseMetrics, todayActiveSessions] = await Promise.all([
       safeRun(() => getOverviewCountsAggregated(startDate), { messagesByDay: {}, usersByDay: {} }, 'overviewCounts'),
-      safeRun(() => getOverviewTotals(startDate), { totalMessages: 0, totalUsers: 0, todayMessages: 0, imagesSharedToday: 0 }, 'overviewTotals'),
-      safeRun(getRealDeviceBreakdown, { mobile: 0, desktop: 0, tablet: 0 }, 'deviceBreakdown'),
-      safeRun(getRealTopCountries, [], 'topCountries'),
+      safeRun(() => getOverviewTotals(startDate), { totalMessages: 0, totalUsers: 0, todayMessages: 0, imagesSharedToday: 0, todayChattedUsers: 0 }, 'overviewTotals'),
+      safeRun(() => getRealDeviceBreakdown(startDate), { mobile: 0, desktop: 0, tablet: 0 }, 'deviceBreakdown'),
+      safeRun(() => getRealTopCountries(startDate), [], 'topCountries'),
       safeRun(() => getRealPeakHours(startDate), [], 'peakHours'),
       safeRun(() => getRealAdMetrics(startDate), { impressions: 0, clicks: 0, ctr: 0 }, 'adMetrics'),
       safeRun(() => getRealTopPages(startDate), [], 'topPages'),
@@ -289,7 +300,8 @@ async function getOverviewAnalytics(startDate: string) {
     const usersByDay = counts.usersByDay;
 
     const chartData = [];
-    for (let i = 6; i >= 0; i--) {
+    const chartDays = dateRange === '30d' ? 30 : dateRange === '3d' ? 3 : 7;
+    for (let i = chartDays - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
@@ -302,8 +314,8 @@ async function getOverviewAnalytics(startDate: string) {
         users: dayUsers,
         messages: dayMessages,
         engagement: dayMessages > 0 ? Math.min(100, (dayMessages / Math.max(dayUsers, 1)) * 10) : 0,
-        revenue: (adMetricsR.revenue || 0) / 7,
-        impressions: Math.floor((adMetricsR.impressions || 0) / 7),
+        revenue: (adMetricsR.revenue || 0) / chartDays,
+        impressions: Math.floor((adMetricsR.impressions || 0) / chartDays),
         responseTime: aiResponseMetrics.average,
       });
     }
@@ -318,6 +330,7 @@ async function getOverviewAnalytics(startDate: string) {
         userRetention: sessionMetricsR.retentionRate,
         messagesSentToday: totals.todayMessages,
         imagesSharedToday: totals.imagesSharedToday,
+        todayChattedUsers: totals.todayChattedUsers,
         bounceRate: sessionMetricsR.bounceRate,
         avgResponseTime: aiResponseMetrics.average,
         aiResponseTime: aiResponseMetrics.average,
