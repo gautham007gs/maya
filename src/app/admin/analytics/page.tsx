@@ -17,7 +17,8 @@ import CmsWorkspaceShell from '@/components/admin/CmsWorkspaceShell';
 
 interface AnalyticsData {
   // Real-time metrics
-  dailyUsers: number;
+  sessionsInSelectedRange: number;
+  todayActiveSessions: number;
   totalMessages: number;
   avgSessionTime: number;
   userRetention: number;
@@ -56,7 +57,8 @@ interface AnalyticsData {
 }
 
 interface RealTimeMetrics {
-  currentOnlineUsers: number;
+  sessionsStartedLast15Minutes: number;
+  sessionsStartedLast24Hours: number;
   messagesLastHour: number;
   averageSessionDuration: number;
   topPages: Array<{ page: string; views: number }>;
@@ -69,7 +71,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
   const router = useRouter();
 
   const [analytics, setAnalytics] = useState<AnalyticsData>({
-    dailyUsers: 0,
+    sessionsInSelectedRange: 0,
+    todayActiveSessions: 0,
     totalMessages: 0,
     avgSessionTime: 0,
     userRetention: 0,
@@ -107,7 +110,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const [realTimeMetrics, setRealTimeMetrics] = useState<RealTimeMetrics>({
-    currentOnlineUsers: 0,
+    sessionsStartedLast15Minutes: 0,
+    sessionsStartedLast24Hours: 0,
     messagesLastHour: 0,
     averageSessionDuration: 0,
     topPages: []
@@ -375,7 +379,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
 
         setAnalytics({
           // Use real data from API with local enhancements
-          dailyUsers: data.dailyUsers || 0,
+          sessionsInSelectedRange: data.sessionsInSelectedRange || 0,
+          todayActiveSessions: data.todayActiveSessions || 0,
           totalMessages: data.totalMessages || 0,
           avgSessionTime: currentDuration > 0 ? currentDuration : data.avgSessionTime || 0,
           userRetention: data.userRetention || 0,
@@ -452,7 +457,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
         const rtData = realtimeData.data;
         const overviewMetrics = overviewData?.success ? overviewData.data : null;
         setRealTimeMetrics({
-          currentOnlineUsers: rtData.currentOnlineUsers || 0,
+          sessionsStartedLast15Minutes: rtData.sessionsStartedLast15Minutes || 0,
+          sessionsStartedLast24Hours: rtData.sessionsStartedLast24Hours || 0,
           messagesLastHour: rtData.messagesLastHour || 0,
           averageSessionDuration: overviewMetrics?.avgSessionTime || rtData.averageSessionDuration || 0,
           topPages: rtData.topPages?.length ? rtData.topPages : (overviewMetrics?.topPages || [])
@@ -478,7 +484,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
   const fetchFallbackData = async () => {
     // Show zero values for all metrics when no real data is available
     setAnalytics({
-      dailyUsers: 0,
+      sessionsInSelectedRange: 0,
+      todayActiveSessions: 0,
       totalMessages: 0,
       avgSessionTime: 0,
       userRetention: 0,
@@ -507,7 +514,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
     });
 
     setRealTimeMetrics({
-      currentOnlineUsers: 0,
+      sessionsStartedLast15Minutes: 0,
+      sessionsStartedLast24Hours: 0,
       messagesLastHour: 0,
       averageSessionDuration: 0,
       topPages: []
@@ -651,10 +659,14 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
 
       {/* Real-time Status Bar */}
       <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm p-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-emerald-600">{realTimeMetrics.currentOnlineUsers}</div>
-            <div className="text-xs font-medium text-slate-500 mt-0.5">Online Now</div>
+            <div className="text-2xl font-bold text-emerald-600">{realTimeMetrics.sessionsStartedLast15Minutes}</div>
+            <div className="text-xs font-medium text-slate-500 mt-0.5">Sessions / 15m</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-sky-600">{realTimeMetrics.sessionsStartedLast24Hours}</div>
+            <div className="text-xs font-medium text-slate-500 mt-0.5">Sessions / 24h</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-violet-600">{realTimeMetrics.messagesLastHour}</div>
@@ -687,13 +699,13 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Daily Active Users</CardTitle>
+                <CardTitle className="text-sm font-medium">Active sessions today</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatNumber(analytics.dailyUsers)}</div>
-                <p className="text-xs text-muted-foreground">{analytics.dailyUsers > 0 ? 'Unique users from database' : 'No unique users yet'}</p>
-                <Progress value={analytics.dailyUsers > 0 ? Math.min(100, analytics.dailyUsers * 2) : 0} className="mt-2" />
+                <div className="text-2xl font-bold">{formatNumber(analytics.todayActiveSessions)}</div>
+                <p className="text-xs text-muted-foreground">Distinct signed sessions in today’s business-timezone day; analytics opt-in only.</p>
+                <Progress value={analytics.todayActiveSessions > 0 ? Math.min(100, analytics.todayActiveSessions * 2) : 0} className="mt-2" />
               </CardContent>
             </Card>
 
@@ -811,7 +823,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
           <RealTimeTab
             newRealTimeStats={newRealTimeStats}
             peakHours={analytics.peakHours}
-            currentOnlineUsers={realTimeMetrics.currentOnlineUsers}
+            sessionsStartedLast15Minutes={realTimeMetrics.sessionsStartedLast15Minutes}
             aiResponseTime={analytics.aiResponseTime}
           />
         </TabsContent>
@@ -1688,7 +1700,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Total DB Users</span>
                     <Badge variant="secondary">
-                      {analytics.dailyUsers > 0 ? formatNumber(analytics.dailyUsers) : '—'}
+                      {analytics.sessionsInSelectedRange > 0 ? formatNumber(analytics.sessionsInSelectedRange) : '—'}
                     </Badge>
                   </div>
                 </div>

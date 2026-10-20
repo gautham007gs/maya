@@ -27,6 +27,7 @@ import { redactMessageLogContent } from '@/lib/message-log-privacy';
 import { getQuotaDateString } from '@/lib/quota-date';
 import { checkRateLimit } from '@/lib/shared-rate-limiter';
 import { mapWithConcurrency } from '@/lib/process-concurrency';
+import { isAnalyticsAllowedOnRequest } from '@/lib/consent';
 
 const MAX_BATCH_SIZE = 100;
 const MAX_EVENT_COUNT_PER_MINUTE = 300;
@@ -65,6 +66,10 @@ export async function POST(request: NextRequest) {
     rateLimit: { requests: 200, window: 60000 }
   });
   if (securityCheck) return securityCheck;
+
+  if (!isAnalyticsAllowedOnRequest(name => request.cookies.get(name)?.value)) {
+    return NextResponse.json({ error: 'Analytics consent required' }, { status: 403 });
+  }
 
   // Session identity comes exclusively from the signed cookie.
   const identity = resolveOrMintSessionIdentity(request);

@@ -1,5 +1,6 @@
 import 'server-only';
 import { getMysqlClient } from './mysql-client';
+import { getQuotaDateString } from './quota-date';
 
 export async function getDeviceBreakdownAggregated(): Promise<{ mobile: number; desktop: number; tablet: number }> {
   const db = await getMysqlClient();
@@ -180,6 +181,41 @@ export async function getOverviewTotals(startDate: string) {
     totalUsers: Number(userRows?.[0]?.total) || 0,
     todayMessages: Number(todayRows?.[0]?.msgs_today) || 0,
     imagesSharedToday: Number(todayRows?.[0]?.images_today) || 0,
+  };
+}
+
+export async function getTodayActiveSessionsAggregated(): Promise<number> {
+  const db = await getMysqlClient();
+  const [rows]: any = await db.query(
+    `SELECT COUNT(DISTINCT user_pseudo_id) AS users
+     FROM daily_activity_log
+     WHERE activity_date = ?`,
+    [getQuotaDateString()],
+  );
+  return Number((rows || [])[0]?.users) || 0;
+}
+
+export async function getRealtimeSessionCountsAggregated(): Promise<{
+  sessionsStartedLast15Minutes: number;
+  sessionsStartedLast24Hours: number;
+}> {
+  const db = await getMysqlClient();
+  const now = Date.now();
+  const last15Minutes = new Date(now - 15 * 60 * 1000).toISOString();
+  const last24Hours = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const [rows]: any = await db.query(
+    `SELECT
+       COUNT(DISTINCT CASE
+         WHEN started_at >= ? AND is_active = 1 THEN session_id
+       END) AS sessions_15m,
+       COUNT(DISTINCT session_id) AS sessions_24h
+     FROM user_sessions
+     WHERE started_at >= ?`,
+    [last15Minutes, last24Hours],
+  );
+  return {
+    sessionsStartedLast15Minutes: Number((rows || [])[0]?.sessions_15m) || 0,
+    sessionsStartedLast24Hours: Number((rows || [])[0]?.sessions_24h) || 0,
   };
 }
 

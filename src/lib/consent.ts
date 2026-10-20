@@ -66,14 +66,26 @@ function parseRaw(raw: string | null): ConsentPreferences | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<ConsentPreferences> & { accepted?: boolean };
-    if (typeof parsed.version === 'number' && parsed.version !== CONSENT_VERSION) {
+    if (typeof parsed.version === 'number' && parsed.version > CONSENT_VERSION) {
       return null;
     }
     if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) {
       return null;
     }
     if (parsed.choice === 'accepted' || parsed.choice === 'rejected' || parsed.choice === 'pending' || parsed.choice === 'custom') {
-      return { ...EMPTY, ...parsed, necessary: true };
+      const wasAccepted = parsed.choice === 'accepted';
+      const wasRejected = parsed.choice === 'rejected';
+      return {
+        ...EMPTY,
+        ...parsed,
+        version: CONSENT_VERSION,
+        necessary: true,
+        analytics: wasRejected ? false : (typeof parsed.analytics === 'boolean' ? parsed.analytics : wasAccepted),
+        advertising: wasRejected ? false : (typeof parsed.advertising === 'boolean' ? parsed.advertising : wasAccepted),
+        personalization: wasRejected ? false : (typeof parsed.personalization === 'boolean' ? parsed.personalization : wasAccepted),
+        aiLearning: wasRejected ? false : (typeof parsed.aiLearning === 'boolean' ? parsed.aiLearning : wasAccepted),
+        intimacyLevel: wasRejected ? false : (typeof parsed.intimacyLevel === 'boolean' ? parsed.intimacyLevel : wasAccepted),
+      };
     }
     if (typeof parsed.accepted === 'boolean') {
       return buildPreferences(parsed.accepted ? 'accepted' : 'rejected');
@@ -139,6 +151,12 @@ export function isAdvertisingAllowedOnRequest(
   getCookie: (name: string) => string | undefined,
 ): boolean {
   return getConsentFromRequestCookies(getCookie)?.advertising === true;
+}
+
+export function isAnalyticsAllowedOnRequest(
+  getCookie: (name: string) => string | undefined,
+): boolean {
+  return getConsentFromRequestCookies(getCookie)?.analytics === true;
 }
 
 export function saveConsent(

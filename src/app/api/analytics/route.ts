@@ -14,6 +14,8 @@ import {
   getAiResponseMetricsAggregated,
   getOverviewCountsAggregated,
   getOverviewTotals,
+  getTodayActiveSessionsAggregated,
+  getRealtimeSessionCountsAggregated,
   getMessageBreakdownAggregated,
   getHourlyDistributionAggregated,
 } from '@/lib/analytics-queries';
@@ -264,7 +266,7 @@ async function safeRun<T>(fn: () => PromiseLike<T>, fallback: T, label: string):
 
 async function getOverviewAnalytics(startDate: string) {
   try {
-    const [counts, totals, deviceBreakdown, topCountries, peakHours, adMetrics, topPages, userJourney, cookieConsent, sessionMetrics, languageDistribution, repeatUsers, aiResponseMetrics] = await Promise.all([
+    const [counts, totals, deviceBreakdown, topCountries, peakHours, adMetrics, topPages, userJourney, cookieConsent, sessionMetrics, languageDistribution, repeatUsers, aiResponseMetrics, todayActiveSessions] = await Promise.all([
       safeRun(() => getOverviewCountsAggregated(startDate), { messagesByDay: {}, usersByDay: {} }, 'overviewCounts'),
       safeRun(() => getOverviewTotals(startDate), { totalMessages: 0, totalUsers: 0, todayMessages: 0, imagesSharedToday: 0 }, 'overviewTotals'),
       safeRun(getRealDeviceBreakdown, { mobile: 0, desktop: 0, tablet: 0 }, 'deviceBreakdown'),
@@ -278,6 +280,7 @@ async function getOverviewAnalytics(startDate: string) {
       safeRun(() => getRealLanguageDistribution(startDate), [], 'languageDistribution'),
       safeRun(() => getRealRepeatUsers(startDate), 0, 'repeatUsers'),
       safeRun(() => getRealAiResponseMetrics(startDate), { average: 0, samples: 0 }, 'aiResponseMetrics'),
+      safeRun(getTodayActiveSessionsAggregated, 0, 'todayActiveSessions'),
     ]);
 
     const adMetricsR = adMetrics as any;
@@ -308,7 +311,8 @@ async function getOverviewAnalytics(startDate: string) {
     return NextResponse.json({
       success: true,
       data: {
-        dailyUsers: totals.totalUsers,
+        sessionsInSelectedRange: totals.totalUsers,
+        todayActiveSessions,
         totalMessages: totals.totalMessages,
         avgSessionTime: sessionMetricsR.averageSessionLength,
         userRetention: sessionMetricsR.retentionRate,
@@ -356,7 +360,7 @@ async function getRealTimeMetrics() {
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
-    const [messagesResult, sessionsResult, adMetrics, topPages] = await Promise.all([
+    const [messagesResult, sessionCounts, adMetrics, topPages] = await Promise.all([
       // MUST have a LIMIT — without it this returns every row in the table,
       // hangs the MySQL pool (connectionLimit=5), and causes a browser-visible freeze.
       db
@@ -364,11 +368,7 @@ async function getRealTimeMetrics() {
         .select('message_id, chat_id, sender_type, created_at')
         .gte('created_at', oneHourAgo.toISOString())
         .limit(2000),
-      db
-        .from('user_sessions')
-        .select('session_id, is_active')
-        .gte('started_at', new Date(Date.now() - 15 * 60 * 1000).toISOString())
-        .limit(500),
+      getRealtimeSessionCountsAggregated(),
       getRealAdMetrics(oneHourAgo.toISOString().split('T')[0]),
       // getRealTopPages() now takes the same date-only string format as the
       // overview endpoint (see below) rather than a hardcoded 24h window —
@@ -379,18 +379,14 @@ async function getRealTimeMetrics() {
     if (messagesResult.error) {
       console.error('Messages query error:', messagesResult.error);
     }
-    if (sessionsResult.error) {
-      console.error('Sessions query error:', sessionsResult.error);
-    }
-
     const messagesLastHour = (messagesResult as any).data?.length || 0;
-    const currentOnlineUsers = (sessionsResult as any).data?.filter((s: any) => s.is_active).length || 0;
     const activeChats = (messagesResult as any).data ? new Set((messagesResult as any).data.map((msg: any) => msg.chat_id)).size : 0;
 
     return NextResponse.json({
       success: true,
       data: {
-        currentOnlineUsers,
+        sessionsStartedLast15Minutes: sessionCounts.sessionsStartedLast15Minutes,
+        sessionsStartedLast24Hours: sessionCounts.sessionsStartedLast24Hours,
         messagesLastHour,
         activeChats,
         avgResponseTime: 0,

@@ -20,7 +20,7 @@ interface RealTimeTabProps {
     };
   };
   peakHours: Array<{ hour: number; users: number }>;
-  currentOnlineUsers: number;
+  sessionsStartedLast15Minutes: number;
   aiResponseTime: number;
 }
 
@@ -29,7 +29,7 @@ interface RealTimeTabProps {
 // it down via props. Adding a second fetch here would fire a third concurrent
 // SELECT on messages_log (alongside the parent's overview + realtime calls),
 // exhausting the 5-connection MySQL pool and freezing the browser.
-export function RealTimeTab({ newRealTimeStats, peakHours: _peakHours, currentOnlineUsers, aiResponseTime }: RealTimeTabProps) {
+export function RealTimeTab({ newRealTimeStats, peakHours: _peakHours, sessionsStartedLast15Minutes, aiResponseTime }: RealTimeTabProps) {
   const sessionMetrics = newRealTimeStats?.sessionQualityMetrics ?? {
     averageMessagesPerSession: 0,
     averageSessionLength: 0,
@@ -48,9 +48,9 @@ export function RealTimeTab({ newRealTimeStats, peakHours: _peakHours, currentOn
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {currentOnlineUsers}
+              {sessionsStartedLast15Minutes}
             </div>
-            <p className="text-xs text-muted-foreground">Active in the last 15 minutes</p>
+            <p className="text-xs text-muted-foreground">Marked active; session start was in the last 15 minutes</p>
           </CardContent>
         </Card>
 

@@ -37,6 +37,8 @@ export class AnalyticsTracker {
   private eventQueue: AnalyticsEvent[] = [];
   private flushInterval: NodeJS.Timeout | null = null;
   private deviceInfo: any = {};
+  private trackingCleanup: (() => void) | null = null;
+  private consentListener: (() => void) | null = null;
 
   private constructor() {
     this.sessionId = this.generateSessionId();
@@ -44,6 +46,13 @@ export class AnalyticsTracker {
     this.sessionStartTime = Date.now();
     this.initializeTracking();
     this.startEventQueue();
+    if (typeof window !== 'undefined') {
+      this.consentListener = () => {
+        if (CookieManager.getConsentPreferences()?.analytics) this.enableTracking();
+        else this.disableTracking();
+      };
+      window.addEventListener('consentchange', this.consentListener);
+    }
   }
 
   public static getInstance(): AnalyticsTracker {
@@ -61,7 +70,9 @@ export class AnalyticsTracker {
 
     if (this.isTrackingEnabled) {
       await this.detectDeviceAndLocation();
+      if (!this.isTrackingEnabled) return;
       await this.trackSessionStart();
+      if (!this.isTrackingEnabled) return;
       this.setupRealTimeTracking();
     }
   }
@@ -226,26 +237,37 @@ export class AnalyticsTracker {
   }
 
   private setupRealTimeTracking(): void {
+    if (this.trackingCleanup) return;
     // Track page visibility changes
-    document.addEventListener('visibilitychange', () => {
+    const handleVisibilityChange = () => {
       if (document.hidden) {
         this.updateSessionDuration();
       }
-    });
+    };
 
     // Track page unload
-    window.addEventListener('beforeunload', () => {
+    const handleBeforeUnload = () => {
       this.updateSessionDuration();
       this.flushEvents(true);
-    });
+    };
 
     // Track user interactions for journey funnel
-    document.addEventListener('click', (event) => {
+    const handleClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (target.closest('.chat-input') || target.closest('[data-action="send-message"]')) {
         this.trackJourneyStep('message_sent', 3);
       }
-    });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleClick);
+    this.trackingCleanup = () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleClick);
+      this.trackingCleanup = null;
+    };
   }
 
   private async updateSessionDuration(): Promise<void> {
@@ -521,15 +543,25 @@ export class AnalyticsTracker {
   }
 
   public enableTracking(): void {
+    if (this.isTrackingEnabled) return;
     this.isTrackingEnabled = true;
-    this.initializeTracking();
+    void this.initializeTracking();
   }
 
   public disableTracking(): void {
     this.isTrackingEnabled = false;
+    this.eventQueue = [];
+    this.trackingCleanup?.();
+    this.trackingCleanup = null;
   }
 
   destroy() {
+    if (typeof window !== 'undefined' && this.consentListener) {
+      window.removeEventListener('consentchange', this.consentListener);
+      this.consentListener = null;
+    }
+    this.trackingCleanup?.();
+    this.trackingCleanup = null;
     if (this.flushInterval) {
       clearInterval(this.flushInterval);
       this.flushInterval = null;

@@ -18,6 +18,10 @@ const GlobalAdScripts: React.FC = () => {
   });
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
+  const popunderEnabled = adSettings?.adsterraPopunderEnabled;
+  const popunderCode = adSettings?.adsterraPopunderCode ?? '';
+  const adsEnabledGlobally = adSettings?.adsEnabledGlobally;
+  const adsKillSwitch = adSettings?.adsKillSwitch;
 
   useEffect(() => {
     setIsClient(true);
@@ -33,21 +37,21 @@ const GlobalAdScripts: React.FC = () => {
       if (process.env.NODE_ENV === 'development') console.info(`[Ads][Popunder] ${message}`);
     };
 
-    if (!isClient || isLoadingAdSettings || !adSettings) return;
+    if (!isClient || isLoadingAdSettings) return;
     if (typeof document === 'undefined') return;
     if (!adsAllowed) {
       log('not loaded: advertising permission is off');
       return;
     }
-    if (adSettings.adsKillSwitch || !adSettings.adsEnabledGlobally) {
+    if (adsKillSwitch || !adsEnabledGlobally) {
       log('not loaded: global ads are disabled');
       return;
     }
-    if (!adSettings.adsterraPopunderEnabled || !adSettings.adsterraPopunderCode?.trim()) {
+    if (!popunderEnabled || !popunderCode.trim()) {
       log('not loaded: enable Popunder and save its Adsterra script in Admin → Ads');
       return;
     }
-    if (adSettings.adsterraPopunderCode.toLowerCase().includes('placeholder')) {
+    if (popunderCode.toLowerCase().includes('placeholder')) {
       log('not loaded: the saved Popunder code is a placeholder');
       return;
     }
@@ -67,6 +71,7 @@ const GlobalAdScripts: React.FC = () => {
     const injectedScripts: HTMLScriptElement[] = [];
     const injectedVendorNodes = new Set<Node>();
     let observer: MutationObserver | null = null;
+    let observerStopTimer: ReturnType<typeof setTimeout> | null = null;
     let idleHandle: number | null = null;
     let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
     let triggered = false;
@@ -115,9 +120,14 @@ const GlobalAdScripts: React.FC = () => {
           mutations.forEach(mutation => mutation.addedNodes.forEach(trackAddedNode));
         });
         observer.observe(document.body, { childList: true, subtree: true });
+        observerStopTimer = setTimeout(() => {
+          observer?.disconnect();
+          observer = null;
+          observerStopTimer = null;
+        }, 10_000);
 
         const scriptContainer = document.createElement('div');
-        scriptContainer.innerHTML = adSettings.adsterraPopunderCode;
+        scriptContainer.innerHTML = popunderCode;
         Array.from(scriptContainer.childNodes).forEach(node => {
           if (node.nodeName !== 'SCRIPT') return;
           const originalScript = node as HTMLScriptElement;
@@ -182,11 +192,21 @@ const GlobalAdScripts: React.FC = () => {
       cancelSchedule();
       observer?.disconnect();
       observer = null;
+      if (observerStopTimer !== null) clearTimeout(observerStopTimer);
       injectedScripts.forEach(script => script.remove());
       injectedVendorNodes.forEach(node => node.parentNode?.removeChild(node));
       if (scriptWasAdded) adsterraPopunderInjectedGlobally = false;
     };
-  }, [adSettings, isLoadingAdSettings, isClient, isAdminRoute, adsAllowed]);
+  }, [
+    popunderEnabled,
+    popunderCode,
+    adsKillSwitch,
+    adsEnabledGlobally,
+    isLoadingAdSettings,
+    isClient,
+    isAdminRoute,
+    adsAllowed,
+  ]);
 
   return null;
 };

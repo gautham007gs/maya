@@ -345,7 +345,33 @@ const AdminProfilePage: React.FC = () => {
         if (aiMsgError) throw aiMsgError;
         setRealTotalAiMessages(aiMsgs?.length ?? 0);
 
-        const sevenDaysAgo = format(subDays(new Date(), 6), 'yyyy-MM-dd');
+        const businessTimezone = 'Asia/Kolkata';
+        const dateKeyInBusinessTimezone = (date: Date) => {
+          const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: businessTimezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }).formatToParts(date);
+          const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+          return `${values.year}-${values.month}-${values.day}`;
+        };
+        const databaseDateKey = (value: unknown) => {
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+          const parsed = new Date(value as string | number | Date);
+          return Number.isNaN(parsed.getTime()) ? null : dateKeyInBusinessTimezone(parsed);
+        };
+        const todayKey = dateKeyInBusinessTimezone(new Date());
+        const [year, month, dayOfMonth] = todayKey.split('-').map(Number);
+        const businessDays = Array.from({ length: 7 }, (_, index) => {
+          const date = new Date(Date.UTC(year, month - 1, dayOfMonth - 6 + index, 12));
+          const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+          return {
+            key,
+            label: new Intl.DateTimeFormat('en', { timeZone: businessTimezone, weekday: 'short' }).format(date),
+          };
+        });
+        const sevenDaysAgo = businessDays[0].key;
 
         // RPC calls may not be available — handle gracefully with fallback empty arrays
         const { data: dailyMsgCountsData } = await db
@@ -354,26 +380,26 @@ const AdminProfilePage: React.FC = () => {
         const { data: dailyDAUData } = await db
           .rpc('get_daily_active_user_counts', { start_date: sevenDaysAgo });
 
-        const todayDate = new Date();
-        const last7DaysInterval = eachDayOfInterval({ start: subDays(todayDate, 6), end: todayDate });
-
-        const formattedDailyMsgCounts: DailyCount[] = last7DaysInterval.map(day => {
-          const dayStr = format(day, 'yyyy-MM-dd');
-          const found = Array.isArray(dailyMsgCountsData) ? dailyMsgCountsData.find((d: any) => format(new Date(d.date), 'yyyy-MM-dd') === dayStr) : null;
-          return { date: format(day, 'EEE'), count: found ? Number(found.messages) : 0 };
+        const formattedDailyMsgCounts: DailyCount[] = businessDays.map(day => {
+          const found = Array.isArray(dailyMsgCountsData)
+            ? dailyMsgCountsData.find((d: any) => databaseDateKey(d.date) === day.key)
+            : null;
+          return { date: day.label, count: found ? Number(found.messages) : 0 };
         });
         setRealMessagesSentLast7Days(formattedDailyMsgCounts);
 
-        const formattedDAUCounts: DailyCount[] = last7DaysInterval.map(day => {
-          const dayStr = format(day, 'yyyy-MM-dd');
-          const found = Array.isArray(dailyDAUData) ? dailyDAUData.find((d: any) => format(new Date(d.date), 'yyyy-MM-dd') === dayStr) : null;
-          return { date: format(day, 'EEE'), count: found ? Number(found.active_users) : 0 };
+        const formattedDAUCounts: DailyCount[] = businessDays.map(day => {
+          const found = Array.isArray(dailyDAUData)
+            ? dailyDAUData.find((d: any) => databaseDateKey(d.date) === day.key)
+            : null;
+          return { date: day.label, count: found ? Number(found.active_users) : 0 };
         });
         setDailyActiveUsersData(formattedDAUCounts);
 
-        const todayFormatted = format(todayDate, 'EEE');
-        const todayDAU = formattedDAUCounts.find(d => d.date === todayFormatted);
-        setCurrentDAU(todayDAU ? todayDAU.count : 0);
+        const todayDAU = Array.isArray(dailyDAUData)
+          ? dailyDAUData.find((d: any) => databaseDateKey(d.date) === todayKey)
+          : null;
+        setCurrentDAU(todayDAU ? Number(todayDAU.active_users) : 0);
 
         // If the safety timer already fired and set an error, clear it now
         // that we have real data — prevents stale timeout errors.
@@ -1812,7 +1838,7 @@ const AdminProfilePage: React.FC = () => {
                 <AlertDescription className={`${dbError ? "text-destructive/80" : "text-violet-700/80"} text-sm`}>
                   {dbError
                     ? `Error: ${dbError}. Realtime analytics might be unavailable or incorrect. Ensure Hostinger DB is configured correctly as per HOSTINGER_MYSQL_SETUP.sql, including all SQL functions and tables.`
-                    : "Total User Messages, Total AI Messages, Daily Active Users (DAU), and related charts are fetched from Hostinger DB if configured. DAU is an estimate based on browser-specific pseudo-anonymous identifiers for Kruthika Chat."}
+                    : "Analytics are fetched from Hostinger DB. Daily active users are a calendar-day estimate based on distinct signed browser sessions with analytics consent; they are not a rolling 24-hour count or a count of verified people."}
                 </AlertDescription>
               </Alert>
             </CardHeader>
@@ -1827,8 +1853,8 @@ const AdminProfilePage: React.FC = () => {
                   <CardContent className="p-0 pt-1">{analyticsLoading ? <p className="text-2xl font-bold">Loading...</p> : <p className="text-2xl font-bold">{realTotalAiMessages ?? 'N/A'}</p>}<p className="text-xs text-muted-foreground">From Hostinger DB (real data)</p></CardContent>
                 </Card>
                 <Card className="shadow-sm p-4">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0"><CardTitle className="text-sm font-medium">Daily Active Users (DAU)</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                  <CardContent className="p-0 pt-1">{analyticsLoading ? <p className="text-2xl font-bold">Loading...</p> : <p className="text-2xl font-bold">{currentDAU ?? 'N/A'}</p>}<p className="text-xs text-muted-foreground">From Hostinger DB (pseudo-anonymous estimate)</p></CardContent>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0"><CardTitle className="text-sm font-medium">Daily Active Sessions</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader>
+                  <CardContent className="p-0 pt-1">{analyticsLoading ? <p className="text-2xl font-bold">Loading...</p> : <p className="text-2xl font-bold">{currentDAU ?? 'N/A'}</p>}<p className="text-xs text-muted-foreground">Business calendar day; signed sessions with analytics consent.</p></CardContent>
                 </Card>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1853,7 +1879,7 @@ const AdminProfilePage: React.FC = () => {
                   </CardContent>
                 </Card>
                 <Card className="shadow-sm">
-                  <CardHeader className="pb-2 pt-4"><CardTitle className="text-lg font-medium">Daily Active Users (Last 7 Days)</CardTitle><CardDescription className="text-sm">Pseudo-anonymous users per day. From Hostinger MySQL.</CardDescription></CardHeader>
+                  <CardHeader className="pb-2 pt-4"><CardTitle className="text-lg font-medium">Daily Active Sessions (Last 7 Days)</CardTitle><CardDescription className="text-sm">Distinct signed sessions by business calendar day; analytics consent required.</CardDescription></CardHeader>
                   <CardContent className="h-[300px] w-full pt-2">
                     {analyticsLoading && !dailyActiveUsersData.length ? (
                         <div className="flex items-center justify-center h-full text-muted-foreground">Loading chart data...</div>

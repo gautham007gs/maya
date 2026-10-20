@@ -82,13 +82,6 @@ const USER_LAST_INTERACTION_TIME_KEY = "kruthika_last_interaction_time";
 const USER_DAILY_MESSAGE_COUNT_KEY = "kruthika_daily_message_count";
 const USER_EMOTIONAL_STATE_KEY = "kruthika_user_emotional_state";
 
-function getLocalDateKey(date = new Date()): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 const MESSAGES_KEY = "messages_kruthika";
 const AI_MOOD_KEY = "aiMood_kruthika";
 const RECENT_INTERACTIONS_KEY = "recentInteractions_kruthika";
@@ -1156,34 +1149,7 @@ const KruthikaChatPage: NextPage = React.memo(() => {
       // The ref mirror (hasShownNativeAdOnceRef) stays false at mount, so the
       // first ad appears after 6 messages on each visit.
 
-      const today = getLocalDateKey();
-      const lastActiveDate = localStorage.getItem(LAST_ACTIVE_DATE_KEY);
-
-      if (lastActiveDate !== today) {
-        // Use async/await for better Promise handling
-        (async () => {
-          try {
-            // Daily activity is recorded server-side via the hardened analytics
-            // batch pipeline (signed-cookie identity), never a raw /api/db write.
-            const response = await fetch('/api/analytics/batch', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'same-origin',
-              body: JSON.stringify({ events: [{ eventType: 'session_start', eventData: {} }] }),
-            });
-            if (response.ok) {
-              localStorage.setItem(LAST_ACTIVE_DATE_KEY, today);
-            } else {
-              console.warn("Daily activity logging skipped - batch endpoint:", response.status);
-            }
-          } catch (e: any) {
-            console.warn(
-              "Daily activity logging skipped - DB connection issue:",
-              e?.message || String(e),
-            );
-          }
-        })();
-      }
+      // Site analytics (including DAU) is recorded only after analytics consent.
 
       // ── Load memory from server and merge into localStorage ──────────────
       // This makes "she remembers you" survive device switches and cache clears.

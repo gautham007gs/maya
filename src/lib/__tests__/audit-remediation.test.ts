@@ -61,6 +61,22 @@ describe('consent', () => {
     assert.equal(prefs.analytics, false);
     assert.equal(prefs.personalization, false);
   });
+
+  it('preserves an older rejection instead of re-prompting to change it', async () => {
+    const { COOKIE_CONSENT_KEY, getConsentFromRequestCookies } = await import('../consent');
+    const priorDecision = encodeURIComponent(JSON.stringify({
+      version: 3,
+      choice: 'rejected',
+      advertising: false,
+      analytics: false,
+    }));
+    const prefs = getConsentFromRequestCookies(name =>
+      name === COOKIE_CONSENT_KEY ? priorDecision : undefined,
+    );
+    assert.equal(prefs?.choice, 'rejected');
+    assert.equal(prefs?.advertising, false);
+    assert.equal(prefs?.analytics, false);
+  });
 });
 
 describe('quota-date', () => {
