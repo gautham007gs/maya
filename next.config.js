@@ -132,6 +132,11 @@ const nextConfig = {
 
   experimental: {
     scrollRestoration: true,
+    // Hostinger shared hosting exposes many CPUs but enforces a low process/
+    // thread limit. Without an explicit cap, Next.js starts one worker per
+    // detected CPU during page-data collection and the build aborts with
+    // "OS can't spawn worker thread". This only affects build parallelism.
+    cpus: 1,
     serverActions: {
       // Allow server actions from the configured base URL and localhost variants.
       allowedOrigins: ["localhost:5000", "127.0.0.1:5000", baseUrlHost].filter(
