@@ -381,7 +381,10 @@ async function crawl() {
 
   if (queue.length) warnings.push(`crawl limit reached at ${MAX_PAGES} pages; ${queue.length} URL(s) remained`);
 
-  const indexable = [...visited.values()].filter(result => !result.facts?.robots.noindex);
+  // Fetch failures do not have page facts. Keep them out of metadata analysis
+  // after recording the failure above, so a broken URL produces a useful crawl
+  // report instead of crashing the audit itself.
+  const indexable = [...visited.values()].filter(result => result.facts && !result.facts.robots.noindex);
   const noindex = [...visited.values()].filter(result => result.facts?.robots.noindex);
   const titleOwners = new Map();
   const descriptionOwners = new Map();

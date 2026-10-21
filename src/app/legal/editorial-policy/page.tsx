@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
   title: fitSeoTitle('Editorial Policy & Standards — Kruthika AI Girlfriend Blog'),
-  description: fitMetaDescription('How Kruthika.fun articles are written and checked: human review, AI-assistance disclosure, sourcing and corrections.'),
+  description: fitMetaDescription('Learn how Kruthika.fun articles are researched, human-reviewed, sourced, updated, disclosed when AI assists, and corrected when errors are found.'),
   alternates: {
     canonical: `${BASE_URL}/legal/editorial-policy`,
     languages: { 'x-default': `${BASE_URL}/legal/editorial-policy` },

@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
   title: fitSeoTitle('Privacy Policy — How Kruthika Protects Your Data'),
-  description: fitMetaDescription('The Kruthika.fun Privacy Policy: what we collect, why, and your rights under GDPR, CCPA/CPRA and India DPDP Act.'),
+  description: fitMetaDescription('Read the Kruthika.fun Privacy Policy to understand what we collect, why we use it, retention, sharing, and your rights under GDPR, CCPA/CPRA, and India DPDP.'),
   alternates: {
     canonical: `${BASE_URL}/legal/privacy`,
     languages: { 'x-default': `${BASE_URL}/legal/privacy` },

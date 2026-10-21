@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kruthika.fun';
 
 export const metadata: Metadata = {
   title: fitSeoTitle('Accessibility Statement — WCAG 2.1 AA | Kruthika AI Girlfriend'),
-  description: fitMetaDescription('Accessibility status, measures and known limits on Kruthika.fun, aligned with WCAG 2.1 AA, and how to report a barrier.'),
+  description: fitMetaDescription('Review Kruthika.fun accessibility measures, known limitations, keyboard and screen-reader support, WCAG 2.1 AA goals, and how to report a barrier.'),
   alternates: {
     canonical: `${BASE_URL}/legal/accessibility`,
     languages: { 'x-default': `${BASE_URL}/legal/accessibility` },

@@ -148,7 +148,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
           </div>
 
           {showSettings && (
-            <fieldset className="grid gap-1.5 rounded-lg border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-700 dark:bg-slate-800/60 sm:gap-2 sm:p-3">
+            <fieldset className="grid max-h-56 gap-1.5 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-slate-50/80 p-2.5 pr-1.5 dark:border-slate-700 dark:bg-slate-800/60 sm:max-h-64 sm:gap-2 sm:p-3 sm:pr-2">
               <legend className="px-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
                 Optional categories
               </legend>
@@ -156,7 +156,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
                 Adsterra may set cookies when advertising is enabled. Turning this off prevents Adsterra ad scripts
                 from loading. Necessary storage is always on.
               </p>
-                <label className="flex items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 text-xs dark:bg-slate-900 sm:px-3 sm:py-2 sm:text-sm">
+              <label className="flex items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 text-xs dark:bg-slate-900 sm:px-3 sm:py-2 sm:text-sm">
                 <span>
                   <span className="block font-medium text-slate-800 dark:text-slate-100">Necessary</span>
                   <span className="block text-xs text-slate-500 dark:text-slate-400">Security and core site functions</span>

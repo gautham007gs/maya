@@ -72,5 +72,5 @@ export function composeCategoryDescription(name: string, description?: string | 
   const lead = base
     ? `${base}.`
     : `Articles about ${name.toLowerCase()} and AI companions.`;
-  return fitMetaDescription(`${lead} Written by the Kruthika.fun team to help you use AI companions safely and sensibly.`);
+  return fitMetaDescription(`${lead} Written by the Kruthika.fun team with practical, source-linked guidance to help you use AI companions safely and sensibly.`);
 }
