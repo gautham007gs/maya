@@ -13,9 +13,9 @@
  *   CRAWL_BASE_URL=https://example.com npm run seo:crawl
  */
 
-const DEFAULT_BASE_URL = process.env.REPLIT_DEV_DOMAIN
-  ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-  : 'http://127.0.0.1:5000';
+const DEFAULT_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL
+  || process.env.NEXT_PUBLIC_BASE_URL
+  || 'http://127.0.0.1:5000';
 const BASE_URL = new URL(process.env.CRAWL_BASE_URL || DEFAULT_BASE_URL);
 const CANONICAL_BASE_URL = new URL(process.env.CANONICAL_BASE_URL || 'https://kruthika.fun');
 const USER_AGENT = process.env.CRAWLER_USER_AGENT || 'Googlebot/2.1 (+http://www.google.com/bot.html)';

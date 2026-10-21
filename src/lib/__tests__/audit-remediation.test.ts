@@ -77,15 +77,15 @@ describe('consent', () => {
   });
 
   it('requires an analytics opt-in for server-side analytics writes', async () => {
-    const { COOKIE_CONSENT_KEY, isAnalyticsAllowedOnRequest } = await import('../consent');
+    const { COOKIE_CONSENT_KEY, CONSENT_VERSION, isAnalyticsAllowedOnRequest } = await import('../consent');
     const allowed = encodeURIComponent(JSON.stringify({
-      version: 4,
+      version: CONSENT_VERSION,
       choice: 'custom',
       analytics: true,
       advertising: false,
     }));
     const rejected = encodeURIComponent(JSON.stringify({
-      version: 4,
+      version: CONSENT_VERSION,
       choice: 'rejected',
       analytics: false,
       advertising: false,

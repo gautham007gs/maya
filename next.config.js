@@ -106,14 +106,10 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
 
-  // Allow preview iframe origins in dev — works for local and host environments.
-
-  allowedDevOrigins: [
-    ...allowedDevOrigins,
-    ...(process.env.REPLIT_DEV_DOMAIN
-      ? [process.env.REPLIT_DEV_DOMAIN.replace(/^https?:\/\//, "").split("/")[0]]
-      : []),
-  ].filter((origin, index, origins) => origins.indexOf(origin) === index),
+  // Allow local development origins without depending on a hosting provider.
+  allowedDevOrigins: allowedDevOrigins.filter(
+    (origin, index, origins) => origins.indexOf(origin) === index,
+  ),
 
   compiler: {
     removeConsole:

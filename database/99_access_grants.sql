@@ -7,7 +7,7 @@
 -- UPDATED: 2026-07-26
 --
 -- WHEN TO RUN:
---   Run this file ONLY if connecting from Replit (or any remote host) gives:
+--   Run this file ONLY if connecting from a remote host gives:
 --     "Access denied for user 'xxx'@'xx.xx.xx.xx'"
 --   Even after whitelisting the IP in Hostinger → Remote MySQL.
 --
@@ -49,7 +49,7 @@
 
 -- =============================================================================
 -- WHY '%' (any host)?
--- Replit assigns a different public IP on every container restart.
+-- A hosted application may use a changing public IP.
 -- Using '%' means any remote IP can connect with these credentials.
 -- The password is the only security barrier — use a strong one.
 -- If your security policy requires IP whitelisting, update this regularly

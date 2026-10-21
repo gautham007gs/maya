@@ -1118,7 +1118,7 @@ export default function BlogEditor({ initialPost, postId, categories }: BlogEdit
     if (!editor) return;
     const command = tagName === 'mark' ? 'hiliteColor' : 'strikeThrough';
     // Firefox uses backColor for the same operation; hiliteColor is the
-    // Chromium/Edge command used by the Replit preview.
+    // Chromium/Edge command used by the browser editor.
     const highlightIsActive = activeFormats.highlight;
     document.execCommand(
       command,

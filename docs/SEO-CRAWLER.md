@@ -14,8 +14,8 @@ The crawler:
 - validates JSON-LD parsing and `datePublished`/`dateModified` on blog Article nodes;
 - prints the final indexable/noindex URL sets so indexing policy changes are visible.
 
-The default target is the active Replit preview when `REPLIT_DEV_DOMAIN` is set,
-otherwise `http://127.0.0.1:5000`. Override it for a deployed or local target:
+The default target is `NEXT_PUBLIC_SITE_URL`, then `NEXT_PUBLIC_BASE_URL`, and
+finally `http://127.0.0.1:5000`. Override it for a deployed or local target:
 
 ```bash
 CRAWL_BASE_URL=https://example.com npm run seo:crawl
