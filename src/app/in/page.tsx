@@ -11,7 +11,7 @@ const geo = COUNTRY_GEO_META['/in'];
 
 export const metadata: Metadata = {
   title: 'AI Companion Chat in India — No Account',
-  description: 'Try Kruthika, an AI companion for browser-based chat in Hindi, English and Hinglish. Start without an account and review privacy details before sharing personal information.',
+  description: 'Chat with Kruthika in Hindi, English, or Hinglish without an account. Review privacy details before sharing personal information.',
   alternates: getCountryHreflangAlternates('/in'),
   openGraph: {
     title: 'AI Companion Chat in India — Kruthika',
