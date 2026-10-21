@@ -93,11 +93,13 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
 
   const choiceButtonClass =
     "min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-green-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700";
+  const acceptButtonClass =
+    "min-h-12 w-full rounded-xl border border-green-700 bg-green-600 px-4 text-sm font-bold text-white shadow-md shadow-green-900/20 hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2 dark:border-green-500 dark:bg-green-600 dark:hover:bg-green-500 sm:min-h-13 sm:text-base";
 
   return (
     <div
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-[10002] p-3 sm:p-5 pointer-events-none",
+        "fixed bottom-2 left-2 right-2 z-[10002] pointer-events-none sm:bottom-4 sm:left-4 sm:right-4",
         "transform transition-all duration-300 ease-out",
         visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       )}
@@ -105,20 +107,20 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
       aria-modal="false"
       aria-label="Cookie consent banner"
     >
-      <div className="max-h-[85vh] max-w-4xl mx-auto pointer-events-auto overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 sm:p-5">
-        <div className="flex flex-col gap-4">
+      <div className="max-h-[70vh] w-full max-w-2xl mx-auto pointer-events-auto overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-slate-800 rounded-xl shadow-2xl p-3 sm:p-4">
+        <div className="flex flex-col gap-3">
           <div className="flex items-start gap-3 min-w-0">
-            <div className="shrink-0 p-2 bg-green-100 dark:bg-green-900/40 rounded-xl">
-              <Cookie className="h-5 w-5 text-green-700 dark:text-green-400" />
+            <div className="shrink-0 rounded-lg bg-green-100 p-1.5 dark:bg-green-900/40 sm:p-2">
+              <Cookie className="h-4 w-4 text-green-700 dark:text-green-400 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-[11px] leading-[1.45] text-gray-700 dark:text-gray-300 sm:text-xs sm:leading-relaxed">
                 Necessary storage keeps the site working. This free service is supported by ads. If you allow
                 advertising, Adsterra may use third-party cookies and pseudonymous device data to serve and measure
                 ads. We do not send chat messages to ad partners. You can accept all optional categories or manage
                 them individually. Ads do not load until you make a choice.
               </p>
-              <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+              <p className="mt-1.5 text-[11px] text-gray-600 dark:text-gray-400 sm:mt-2 sm:text-xs">
                 <Link
                   href="/legal/privacy"
                   className="text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 underline font-medium inline-block"
@@ -136,7 +138,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
               <button
                 type="button"
                 onClick={toggleSettings}
-                className="mt-2 inline-flex items-center gap-1.5 rounded-md text-xs font-semibold text-green-800 hover:text-green-900 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 dark:text-green-300 dark:hover:text-green-200"
+                className="mt-1.5 inline-flex items-center gap-1.5 rounded-md text-[11px] font-semibold text-green-800 underline underline-offset-2 hover:text-green-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 dark:text-green-300 dark:hover:text-green-200 sm:mt-2 sm:text-xs"
                 aria-expanded={showSettings}
               >
                 <Settings size={14} aria-hidden="true" />
@@ -146,15 +148,15 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
           </div>
 
           {showSettings && (
-            <fieldset className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+            <fieldset className="grid gap-1.5 rounded-lg border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-700 dark:bg-slate-800/60 sm:gap-2 sm:p-3">
               <legend className="px-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
                 Optional categories
               </legend>
-              <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+              <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300 sm:text-xs">
                 Adsterra may set cookies when advertising is enabled. Turning this off prevents Adsterra ad scripts
                 from loading. Necessary storage is always on.
               </p>
-              <label className="flex items-center justify-between gap-4 rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900">
+                <label className="flex items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 text-xs dark:bg-slate-900 sm:px-3 sm:py-2 sm:text-sm">
                 <span>
                   <span className="block font-medium text-slate-800 dark:text-slate-100">Necessary</span>
                   <span className="block text-xs text-slate-500 dark:text-slate-400">Security and core site functions</span>
@@ -170,7 +172,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
               ] as const).map(([key, label, description]) => (
                 <label
                   key={key}
-                  className="flex items-center justify-between gap-4 rounded-lg bg-white px-3 py-2 text-sm dark:bg-slate-900"
+                  className="flex items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 text-xs dark:bg-slate-900 sm:px-3 sm:py-2 sm:text-sm"
                 >
                   <span>
                     <span className="block font-medium text-slate-800 dark:text-slate-100">{label}</span>
@@ -188,7 +190,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
             </fieldset>
           )}
 
-          <div className={showSettings ? "grid grid-cols-1 gap-2 sm:grid-cols-3" : "grid grid-cols-2 gap-2"}>
+          <div className={showSettings ? "grid grid-cols-1 gap-2 sm:grid-cols-3" : "grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2"}>
             {showSettings ? (
               <Button type="button" variant="outline" className={choiceButtonClass} onClick={saveCustomChoices}>
                 Save choices
@@ -198,7 +200,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
               <Button
                 type="button"
                 variant="outline"
-                className={choiceButtonClass}
+                className={cn(choiceButtonClass, "min-h-10 px-2 text-xs sm:min-h-11 sm:px-4 sm:text-sm")}
                 onClick={openSettings}
                 aria-label="Manage cookie preferences"
               >
@@ -207,8 +209,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({ className: _classN
             )}
             <Button
               type="button"
-              variant="outline"
-              className={choiceButtonClass}
+              className={acceptButtonClass}
               onClick={() => applyChoice('accepted')}
               aria-label="Accept all optional cookies"
             >
